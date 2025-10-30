@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import "./index.css"
+import './App.css'
 
 /* -------------------- Brand Theme -------------------- */
 const THEME = {
