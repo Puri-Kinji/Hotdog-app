@@ -587,7 +587,7 @@ function Toggle<T extends string>({
   );
 }
 
-function CategoryBar({
+ CategoryBar({
   active,
   onPick,
   counts,
@@ -599,11 +599,9 @@ function CategoryBar({
   const cats: (MenuItem["category"] | "All")[] = ["All", ...CATEGORIES];
   return (
     <div
-      style={{
--   position: "sticky",
--   top: 104,
-+   position: "sticky",
-+   top: 0,
+      className="catbar"
+  style={{
+    position: "static",               // default for mobile
     zIndex: 10,
     background: THEME.bg,
     padding: "12px 0",
@@ -639,7 +637,7 @@ function CategoryBar({
   );
 }
 
-function NoteEditor({
+ NoteEditor({
   initial,
   onCancel,
   onSave,
@@ -674,4 +672,8 @@ function NoteEditor({
       </div>
     </div>
   );
+}
+
+@media (min-width: 1024px) {
+  .catbar { position: sticky; top: 104px; }
 }
