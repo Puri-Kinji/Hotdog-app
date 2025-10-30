@@ -292,8 +292,8 @@ export default function RestaurantApp() {
                 <div
                   style={{
                     display: "grid",
-                    gap: 16,
-                    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                    gap: 12,
+                     gridTemplateColumns: "1fr",
                   }}
                 >
                   {items.map((it) => (
