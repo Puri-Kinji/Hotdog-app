@@ -359,7 +359,7 @@ export default function RestaurantApp() {
         </section>
 
         {/* Right: Cart */}
-        <aside style={{ position: "sticky" as const, top: 104, height: "max-content" }}>
+      <aside style={{ position: "static" as const }}>
           <div
             style={{
               borderRadius: 16,
@@ -600,8 +600,10 @@ function CategoryBar({
   return (
     <div
       style={{
-    position: "sticky",
-    top: 104,
+-   position: "sticky",
+-   top: 104,
++   position: "sticky",
++   top: 0,
     zIndex: 10,
     background: THEME.bg,
     padding: "12px 0",
