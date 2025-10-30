@@ -1,0 +1,105 @@
+:root {
+  --brand-yellow: #c9ad4a;  /* background like your site */
+  --brand-red: #c9342e;     /* red for accents and buttons */
+  --brand-light: #fff6d1;   /* soft off-white for panels */
+  --text-dark: #1a1a1a;
+}
+
+/* === PAGE BASE === */
+body {
+  margin: 0;
+  background-color: var(--brand-yellow);
+  color: var(--text-dark);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Keep logo and images visible above */
+header, .logo, img {
+  display: block;
+  max-width: 100%;
+}
+
+/* === BUTTON STYLING === */
+.button-primary,
+.btn-primary {
+  background: var(--brand-red);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.button-primary:hover,
+.btn-primary:hover {
+  opacity: 0.85;
+}
+
+/* === MENU CONTAINER === */
+.menu {
+  max-width: 900px;
+  margin: 2rem auto 4rem;
+  padding: 1.25rem 1.25rem 2rem;
+  background: var(--brand-light);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border: 3px solid var(--brand-red);
+}
+
+/* === MENU HEADINGS === */
+.menu__section {
+  margin: 1.25rem 0 1.75rem;
+}
+
+.menu__heading {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  color: var(--brand-red);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* === MENU LIST === */
+.menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* === MENU ROW === */
+.menu__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+.menu__row:last-child {
+  border-bottom: none;
+}
+
+.menu__item {
+  font-weight: 500;
+}
+
+.menu__price {
+  font-variant-numeric: tabular-nums; /* aligns decimals neatly */
+  font-weight: 700;
+  color: var(--brand-red);
+  text-align: right;
+  min-width: 60px;
+}
+
+/* === FOOTER (optional if you have one) === */
+footer {
+  background: var(--brand-red);
+  color: white;
+  text-align: center;
+  padding: 1rem;
+  font-weight: 600;
+}
