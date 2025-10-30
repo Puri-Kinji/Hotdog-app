@@ -1,3 +1,37 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; overflow-x: hidden; }  /* kill sideways scroll */
+:root {
+  --bg: #CFB857;      /* mustard */
+  --text: #111111;
+  --border: rgba(0,0,0,0.16);
+}
+
+.app-container { max-width: 1152px; margin: 0 auto; padding: 16px; }
+
+/* Main two-column layout ONLY on desktop */
+.main-grid { display: grid; gap: 24px; grid-template-columns: 1fr; }
+@media (min-width: 1024px) {
+  .main-grid { grid-template-columns: 1fr 360px; }
+}
+
+/* Menu becomes a simple list on phones */
+.menu-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) {
+  .menu-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (min-width: 1024px) {
+  .menu-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+}
+
+/* Sticky cart only needs special behavior on desktop */
+.cart-aside { position: static; }
+@media (min-width: 1024px) {
+  .cart-aside { position: sticky; top: 104px; height: max-content; }
+}
+
+/* Category bar: full-width and scrollable without pushing layout */
+.category-bar { position: sticky; top: 104px; z-index: 10; padding: 12px 0; margin: 0 0 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+
 :root {
   --brand-yellow: #c9ad4a;  /* background like your site */
   --brand-red: #c9342e;     /* red for accents and buttons */
