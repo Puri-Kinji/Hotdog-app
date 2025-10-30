@@ -166,7 +166,7 @@ export default function RestaurantApp() {
       >
         <div
           style={{
-            maxWidth: THEME.container,
+            maxWidth: "100%",
             margin: "0 auto",
             padding: "12px 16px",
             display: "flex",
@@ -235,7 +235,7 @@ export default function RestaurantApp() {
         <div style={{ background: THEME.bg, borderTop: `1px solid ${THEME.border}` }}>
           <div
             style={{
-              maxWidth: THEME.container,
+              maxWidth: "100%",
               margin: "0 auto",
               padding: "8px 16px",
               display: "flex",
@@ -267,7 +267,7 @@ export default function RestaurantApp() {
       {/* Main */}
       <main
         style={{
-          maxWidth: THEME.container,
+          maxWidth: "100%",
           margin: "0 auto",
           padding: "24px 16px",
           display: "grid",
@@ -528,7 +528,7 @@ export default function RestaurantApp() {
       <footer style={{ borderTop: `1px solid ${THEME.border}` }}>
         <div
           style={{
-            maxWidth: THEME.container,
+            maxWidth: "100%",
             margin: "0 auto",
             padding: "24px 16px",
             fontSize: 14,
@@ -600,15 +600,18 @@ function CategoryBar({
   return (
     <div
       style={{
-        position: "sticky",
-        top: 104,
-        zIndex: 10,
-        background: THEME.bg,
-        padding: "12px 0",
-        margin: "0 0 16px",
-        borderBottom: `1px solid ${THEME.border}`,
-        overflowX: "auto",
-      }}
+    position: "sticky",
+    top: 104,
+    zIndex: 10,
+    background: THEME.bg,
+    padding: "12px 0",
+    margin: "0 0 16px",
+    borderBottom: `1px solid ${THEME.border}`,
+    overflowX: "auto",
+    overflowY: "hidden",
+    WebkitOverflowScrolling: "touch",
+    touchAction: "pan-x",
+  }}
     >
       <div style={{ display: "flex", gap: 8 }}>
         {cats.map((c) => (
