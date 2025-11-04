@@ -51,14 +51,17 @@ const RESTAURANT = {
 
 /* -------------------- Data -------------------- */
 const MENU: MenuItem[] = [
-  { id: "turkey-dog", name: "Turkey Dog", price: 4.49, category: "Dogs & Links" },
-  { id: "beef-dog", name: "Beef Dog (Kosher)", price: 5.75, category: "Dogs & Links", badge: "Kosher" },
-  { id: "beef-jumbo", name: "Beef Jumbo Dog (Kosher)", price: 7.49, category: "Dogs & Links", badge: "Kosher" },
-  { id: "spicy-beef-link", name: "Spicy Beef Link", price: 8.99, category: "Dogs & Links", badge: "Spicy" },
-  { id: "chicken-link", name: "Chicken Link", price: 8.99, category: "Dogs & Links" },
-  { id: "vegan-dog", name: "Vegan Dog", price: 7.49, category: "Dogs & Links", badge: "Vegan" },
-  { id: "vegan-link", name: "Vegan Link (Spicy)", price: 8.49, category: "Dogs & Links", badge: "Vegan" },
+  // Dogs & Links - Updated with correct pricing from your image
+  { id: "turkey-dog", name: "Turkey Dog", price: 4.99, category: "Dogs & Links" },
+  { id: "beef-dog", name: "Beef Dog (Kosher)", price: 6.49, category: "Dogs & Links", badge: "Kosher" },
+  { id: "beef-jumbo", name: "Beef Jumbo (Kosher)", price: 7.99, category: "Dogs & Links", badge: "Kosher" },
+  { id: "spicy-beef-link", name: "Spicy Beef Link", price: 9.49, category: "Dogs & Links", badge: "Spicy" },
+  { id: "chicken-link", name: "Chicken Link (Pork Casing)", price: 9.49, category: "Dogs & Links" },
+  { id: "vegan-dog", name: "Vegan Dog", price: 7.99, category: "Dogs & Links", badge: "Vegan" },
+  { id: "vegan-link", name: "Vegan Link", price: 9.49, category: "Dogs & Links", badge: "Vegan" },
+  { id: "pastrami-dog", name: "Pastrami Dog", price: 9.99, category: "Dogs & Links" },
 
+  // Keep the existing items for other categories
   { id: "turkey-burger", name: "Turkey Burger", price: 8.99, category: "Burgers & Sandwiches" },
   { id: "salmon-burger", name: "Salmon Burger", price: 8.99, category: "Burgers & Sandwiches" },
   { id: "vegan-burger", name: "Vegan Burger", price: 12.99, category: "Burgers & Sandwiches", badge: "Vegan" },
