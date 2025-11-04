@@ -109,7 +109,6 @@ export default function RestaurantApp() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [mode, setMode] = useState<"Pickup" | "Delivery">("Pickup");
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   const filtered = useMemo(() => {
     let list = MENU.filter((m) => m.name.toLowerCase().includes(query.toLowerCase().trim()));
@@ -148,289 +147,199 @@ export default function RestaurantApp() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: THEME.bg, color: THEME.text }}>
+    <div className="app">
       {/* Header */}
-      <header className="site-header">
-        <div className="header-container">
-          <div className="header-main">
-            <div
-              className="logo"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 16,
-                background: THEME.black,
-                color: "#fff",
-                display: "grid",
-                placeItems: "center",
-                fontWeight: 700,
-                flexShrink: 0,
-              }}
-            >
-              E
-            </div>
+      <header className="header">
+        <div className="header-top">
+          <div className="header-content">
+            <div className="logo">E</div>
             <div className="header-text">
-              <h1 className="h1">{RESTAURANT.name}</h1>
+              <h1 className="restaurant-name">{RESTAURANT.name}</h1>
               <p className="tagline">{RESTAURANT.tagline}</p>
             </div>
-
-            {/* Desktop Search */}
-            <div className="desktop-search">
-              <input
-                aria-label="Search menu"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search menu…"
-                className="search-input"
-              />
-            </div>
-
-            {/* Mobile Search Trigger */}
-            <button
-              onClick={() => setShowMobileSearch(!showMobileSearch)}
-              className="mobile-search-trigger"
-              aria-label="Search menu"
-            >
-              🔍
-            </button>
-
-            {/* Mode toggle + Delivery link */}
-            <div className="header-actions">
-              <Toggle value={mode} onChange={setMode} options={["Pickup", "Delivery"]} />
-              {mode === "Delivery" && (
-                <a
-                  href={RESTAURANT.links.uberEats}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="delivery-link"
-                >
-                  Order on Uber Eats
-                </a>
-              )}
-            </div>
           </div>
-
-          {/* Mobile Search */}
-          {showMobileSearch && (
-            <div className="mobile-search-container">
-              <input
-                aria-label="Search menu"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search menu…"
-                className="mobile-search-input"
-                autoFocus
-              />
-              <button 
-                onClick={() => setShowMobileSearch(false)}
-                className="close-search-btn"
-                aria-label="Close search"
-              >
-                ✕
-              </button>
-            </div>
-          )}
         </div>
 
-        {/* Promo strip */}
-        <div className="promo-strip">
-          <div className="promo-container">
-            <a
-              href={RESTAURANT.links.doorDash}
-              target="_blank"
-              rel="noreferrer"
-              className="promo-btn"
-            >
-              {RESTAURANT.promo.label}
-            </a>
+        {/* Order Type Bar */}
+        <div className="order-type-bar">
+          <div className="order-type-content">
+            <div className="location-time">
+              <span className="location">PICKUP ASAP • {RESTAURANT.address}</span>
+            </div>
+            <Toggle value={mode} onChange={setMode} options={["Pickup", "Delivery"]} />
+          </div>
+        </div>
+
+        {/* Promo Banner */}
+        <div className="promo-banner">
+          <div className="promo-content">
+            <button className="promo-btn">{RESTAURANT.promo.label}</button>
             <span className="promo-text">{RESTAURANT.promo.text}</span>
           </div>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="app-container main-grid">
-        {/* Left: Menu */}
-        <section className="menu-section">
-          <CategoryBar
-            active={category}
-            onPick={(c) => setCategory(c)}
-            counts={CATEGORIES.reduce<Record<string, number>>((acc, c) => {
-              acc[c] = MENU.filter((m) => m.category === c).length;
-              return acc;
-            }, {})}
-          />
+      {/* Main Content */}
+      <main className="main">
+        <div className="container">
+          {/* Categories Navigation */}
+          <nav className="categories-nav">
+            <div className="categories-scroll">
+              {["All", ...CATEGORIES].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat as any)}
+                  className={`category-tab ${category === cat ? 'active' : ''}`}
+                >
+                  {cat}
+                  {cat !== "All" && <span className="item-count"> ({MENU.filter(m => m.category === cat).length})</span>}
+                </button>
+              ))}
+            </div>
+          </nav>
 
-          {[...grouped.entries()].map(([cat, items]) =>
-            items.length ? (
-              <div key={cat} className="category-section">
-                <h2 className="h2">{cat}</h2>
-                <div className="menu-grid">
-                  {items.map((it) => (
-                    <article key={it.id} className="menu-card">
-                      <div className="menu-card-content">
-                        <div className="menu-item-info">
-                          <h3 className="menu-item-name">{it.name}</h3>
-                          {it.desc && (
-                            <p className="menu-item-desc">{it.desc}</p>
-                          )}
-                          {it.badge && <span className="badge">{it.badge}</span>}
-                        </div>
-                        <div className="menu-item-actions">
-                          <div className="price">{money(it.price)}</div>
-                          <button 
-                            onClick={() => addToCart(it)} 
-                            className="btn btn-primary add-to-cart-btn"
-                          >
-                            Add
-                          </button>
+          {/* Menu Sections */}
+          <div className="menu-sections">
+            {[...grouped.entries()].map(([cat, items]) =>
+              items.length ? (
+                <section key={cat} className="menu-section">
+                  <h2 className="section-title">{cat}</h2>
+                  <div className="items-grid">
+                    {items.map((item) => (
+                      <div key={item.id} className="menu-item">
+                        <div className="item-content">
+                          <div className="item-info">
+                            <h3 className="item-name">{item.name}</h3>
+                            {item.desc && <p className="item-desc">{item.desc}</p>}
+                            {item.badge && <span className="badge">{item.badge}</span>}
+                          </div>
+                          <div className="item-actions">
+                            <div className="price">{money(item.price)}</div>
+                            <button 
+                              onClick={() => addToCart(item)}
+                              className="add-btn"
+                            >
+                              Add
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </article>
+                    ))}
+                  </div>
+                </section>
+              ) : null
+            )}
+          </div>
+        </div>
+
+        {/* Cart Sidebar */}
+        <aside className="cart-sidebar">
+          <div className="cart-card">
+            <h2 className="cart-title">Your Order</h2>
+            {cart.length === 0 ? (
+              <div className="empty-cart">
+                <p>Your cart is empty. Add something tasty!</p>
+              </div>
+            ) : (
+              <div className="cart-content">
+                <div className="cart-items">
+                  {cart.map((item) => (
+                    <div key={item.id} className="cart-item">
+                      <div className="cart-item-main">
+                        <div className="item-details">
+                          <div className="item-name">{item.name}</div>
+                          {item.note && <div className="item-note">Note: {item.note}</div>}
+                        </div>
+                        <div className="item-controls">
+                          <div className="item-price">{money(item.price * item.qty)}</div>
+                          <div className="quantity-controls">
+                            <button onClick={() => changeQty(item.id, -1)} className="qty-btn">−</button>
+                            <span className="qty-display">{item.qty}</span>
+                            <button onClick={() => changeQty(item.id, 1)} className="qty-btn">+</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="item-actions">
+                        <button onClick={() => setNoteFor(item.id)} className="action-btn">
+                          {item.note ? "Edit note" : "Add note"}
+                        </button>
+                        <button onClick={() => removeFromCart(item.id)} className="action-btn remove">
+                          Remove
+                        </button>
+                      </div>
+
+                      {noteFor === item.id && (
+                        <NoteEditor
+                          initial={item.note || ""}
+                          onCancel={() => setNoteFor(null)}
+                          onSave={(val) => applyNote(item.id, val)}
+                        />
+                      )}
+                    </div>
                   ))}
                 </div>
-              </div>
-            ) : null,
-          )}
-        </section>
-
-        {/* Right: Cart */}
-        <aside className="cart-aside">
-          <div className="cart-card">
-            <h2 className="h2">Your Order</h2>
-            {!cart.length && (
-              <p className="empty-cart-message">
-                Your cart is empty. Add something tasty!
-              </p>
-            )}
-
-            {!!cart.length && (
-              <div className="cart-items">
-                {cart.map((l) => (
-                  <div
-                    key={l.id}
-                    className="cart-item"
-                  >
-                    <div className="cart-item-main">
-                      <div className="cart-item-info">
-                        <div className="cart-item-name">{l.name}</div>
-                        {l.note && (
-                          <div className="cart-item-note">Note: {l.note}</div>
-                        )}
-                      </div>
-                      <div className="cart-item-controls">
-                        <div className="cart-item-price">{money(l.price * l.qty)}</div>
-                        <div className="quantity-controls">
-                          <button 
-                            onClick={() => changeQty(l.id, -1)} 
-                            className="btn quantity-btn"
-                          >-</button>
-                          <span className="quantity-display">{l.qty}</span>
-                          <button 
-                            onClick={() => changeQty(l.id, +1)} 
-                            className="btn quantity-btn"
-                          >+</button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="cart-item-actions">
-                      <button 
-                        onClick={() => setNoteFor(l.id)} 
-                        className="btn-ghost"
-                      >
-                        {l.note ? "Edit note" : "Add note"}
-                      </button>
-                      <button 
-                        onClick={() => removeFromCart(l.id)} 
-                        className="btn-ghost remove-btn"
-                      >
-                        Remove
-                      </button>
-                    </div>
-
-                    {noteFor === l.id && (
-                      <NoteEditor
-                        initial={l.note || ""}
-                        onCancel={() => setNoteFor(null)}
-                        onSave={(val) => applyNote(l.id, val)}
-                      />
-                    )}
-                  </div>
-                ))}
 
                 {/* Totals */}
                 <div className="cart-totals">
                   <div className="total-line">
-                    <span>Subtotal</span><span>{money(subtotal)}</span>
+                    <span>Subtotal</span>
+                    <span>{money(subtotal)}</span>
                   </div>
                   <div className="total-line">
-                    <span>Tax</span><span>{money(tax)}</span>
+                    <span>Tax</span>
+                    <span>{money(tax)}</span>
                   </div>
-                  <div className="total-line final-total">
-                    <span>Total</span><span>{money(total)}</span>
+                  <div className="total-line final">
+                    <span>Total</span>
+                    <span>{money(total)}</span>
                   </div>
                 </div>
 
-                {/* Checkout actions */}
-                <div className="checkout-actions">
+                {/* Checkout Button */}
+                <div className="checkout-section">
                   {mode === "Delivery" ? (
                     <a
                       href={RESTAURANT.links.uberEats}
                       target="_blank"
                       rel="noreferrer"
-                      className="btn btn-primary checkout-btn"
+                      className="checkout-btn"
                     >
                       Continue on Uber Eats
                     </a>
                   ) : (
-                    <button className="btn btn-primary checkout-btn">
-                      Place Pickup Order (demo)
+                    <button className="checkout-btn">
+                      Place Pickup Order
                     </button>
                   )}
-                  <p className="checkout-disclaimer">
-                    * Online checkout not wired in this demo. Link out to delivery partners or add your own API.
+                  <p className="checkout-note">
+                    * Online checkout not wired in this demo
                   </p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Info card */}
+          {/* Info Card */}
           <div className="info-card">
-            <div className="info-title">Visit us</div>
-            <div className="info-address">{RESTAURANT.address}</div>
-            <div className="info-phone">{RESTAURANT.phone}</div>
+            <h3 className="info-title">Visit us</h3>
+            <p className="info-address">{RESTAURANT.address}</p>
+            <p className="info-phone">{RESTAURANT.phone}</p>
             <div className="hours-grid">
-              {RESTAURANT.hours.map((h) => (
-                <div key={h.d} className="hour-line">
-                  <span className="hour-day">{h.d}</span>
-                  <span className="hour-time">{h.h}</span>
+              {RESTAURANT.hours.map((hour) => (
+                <div key={hour.d} className="hour-line">
+                  <span className="day">{hour.d}</span>
+                  <span className="time">{hour.h}</span>
                 </div>
               ))}
             </div>
           </div>
         </aside>
       </main>
-
-      {/* Footer */}
-      <footer className="site-footer">
-        <div className="footer-container">
-          <div className="footer-copyright">
-            © {new Date().getFullYear()} {RESTAURANT.name}. All rights reserved.
-          </div>
-          <div className="footer-links">
-            <a href={RESTAURANT.links.instagram} target="_blank" rel="noreferrer">Instagram</a>
-            <a href={RESTAURANT.links.tiktok} target="_blank" rel="noreferrer">TikTok</a>
-            <a href={RESTAURANT.links.doorDash} target="_blank" rel="noreferrer">DoorDash</a>
-            <a href={RESTAURANT.links.uberEats} target="_blank" rel="noreferrer">Uber Eats</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
 
-/* -------------------- Small Components -------------------- */
+/* -------------------- Components -------------------- */
 function Toggle<T extends string>({
   value,
   onChange,
@@ -441,7 +350,7 @@ function Toggle<T extends string>({
   options: readonly T[] | T[];
 }) {
   return (
-    <div className="toggle-container">
+    <div className="toggle">
       {options.map((opt) => (
         <button
           key={String(opt)}
@@ -451,33 +360,6 @@ function Toggle<T extends string>({
           {String(opt)}
         </button>
       ))}
-    </div>
-  );
-}
-
-function CategoryBar({
-  active,
-  onPick,
-  counts,
-}: {
-  active: MenuItem["category"] | "All";
-  onPick: (c: MenuItem["category"] | "All") => void;
-  counts: Record<string, number>;
-}) {
-  const cats: (MenuItem["category"] | "All")[] = ["All", ...CATEGORIES];
-  return (
-    <div className="category-bar">
-      <div className="category-scroll">
-        {cats.map((c) => (
-          <button
-            key={c}
-            onClick={() => onPick(c)}
-            className={`category-btn ${active === c ? 'active' : ''}`}
-          >
-            {c} {c !== "All" && <span className="category-count">({counts[c] || 0})</span>}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
@@ -498,12 +380,16 @@ function NoteEditor({
         value={val}
         onChange={(e) => setVal(e.target.value)}
         rows={3}
-        className="note-textarea"
         placeholder="Add ketchup, extra onions, no pickles…"
+        className="note-input"
       />
       <div className="note-actions">
-        <button onClick={() => onSave(val)} className="btn btn-primary">Save note</button>
-        <button onClick={onCancel} className="btn">Cancel</button>
+        <button onClick={() => onSave(val)} className="btn primary">
+          Save note
+        </button>
+        <button onClick={onCancel} className="btn">
+          Cancel
+        </button>
       </div>
     </div>
   );
