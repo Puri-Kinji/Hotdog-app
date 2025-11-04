@@ -1,20 +1,27 @@
+/* ===== Base / Reset ===== */
 * { box-sizing: border-box; }
-html, body { margin: 0; overflow-x: hidden; }  /* kill sideways scroll */
-:root {
-  --bg: #CFB857;      /* mustard */
-  --text: #111111;
-  --border: rgba(0,0,0,0.16);
+html, body, #root {
+  margin: 0;
+  min-height: 100%;
+  overflow-x: hidden;             /* kill sideways scroll */
+  background: #CFB857;            /* THEME.bg everywhere (no white edges on mobile) */
+  color: #111111;                 /* THEME.text */
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* Never let inner wrappers reintroduce a white page background */
+header, main, section, aside, footer { background: transparent; }
+
+/* ===== Container ===== */
 .app-container { max-width: 1152px; margin: 0 auto; padding: 16px; }
 
-/* Main two-column layout ONLY on desktop */
+/* ===== Layout: one column on mobile, 2 columns on desktop ===== */
 .main-grid { display: grid; gap: 24px; grid-template-columns: 1fr; }
 @media (min-width: 1024px) {
   .main-grid { grid-template-columns: 1fr 360px; }
 }
 
-/* Menu becomes a simple list on phones */
+/* ===== Menu grid (cards) ===== */
 .menu-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
 @media (min-width: 640px) {
   .menu-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -23,123 +30,33 @@ html, body { margin: 0; overflow-x: hidden; }  /* kill sideways scroll */
   .menu-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
 }
 
-/* Sticky cart only needs special behavior on desktop */
-.cart-aside { position: static; }
+/* ===== Cart (stack on mobile, sticky on desktop) ===== */
+.cart-aside { position: static; width: 100%; }
 @media (min-width: 1024px) {
   .cart-aside { position: sticky; top: 104px; height: max-content; }
 }
 
-/* Category bar: full-width and scrollable without pushing layout */
-.category-bar { position: sticky; top: 104px; z-index: 10; padding: 12px 0; margin: 0 0 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
-
-:root {
-  --brand-yellow: #c9ad4a;  /* background like your site */
-  --brand-red: #c9342e;     /* red for accents and buttons */
-  --brand-light: #fff6d1;   /* soft off-white for panels */
-  --text-dark: #1a1a1a;
+/* ===== Category bar (scrollable chips) ===== */
+.category-bar {
+  position: sticky;
+  top: 0;                         /* stick to top on mobile */
+  z-index: 10;
+  padding: 12px 0;
+  margin: 0 0 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.16);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+}
+@media (min-width: 1024px) {
+  .category-bar { top: 104px; }   /* sit under header on desktop */
 }
 
-/* === PAGE BASE === */
-body {
-  margin: 0;
-  background-color: var(--brand-yellow);
-  color: var(--text-dark);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-/* Keep logo and images visible above */
-header, .logo, img {
-  display: block;
-  max-width: 100%;
-}
-
-/* === BUTTON STYLING === */
-.button-primary,
+/* ===== Optional shared button look (matches your red) ===== */
 .btn-primary {
-  background: var(--brand-red);
-  color: #fff;
-  border: none;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.5rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  background: #C7372F; color: #fff; border: none;
+  padding: 0.5rem 0.9rem; border-radius: 12px; font-weight: 700;
+  cursor: pointer; transition: opacity .15s;
 }
-
-.button-primary:hover,
-.btn-primary:hover {
-  opacity: 0.85;
-}
-
-/* === MENU CONTAINER === */
-.menu {
-  max-width: 900px;
-  margin: 2rem auto 4rem;
-  padding: 1.25rem 1.25rem 2rem;
-  background: var(--brand-light);
-  border-radius: 1rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  border: 3px solid var(--brand-red);
-}
-
-/* === MENU HEADINGS === */
-.menu__section {
-  margin: 1.25rem 0 1.75rem;
-}
-
-.menu__heading {
-  margin: 0 0 0.5rem;
-  font-size: 1.35rem;
-  color: var(--brand-red);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-/* === MENU LIST === */
-.menu__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-/* === MENU ROW === */
-.menu__row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  gap: 0.5rem;
-  padding: 0.4rem 0;
-  border-bottom: 1px dashed rgba(0, 0, 0, 0.12);
-}
-
-.menu__row:last-child {
-  border-bottom: none;
-}
-
-.menu__item {
-  font-weight: 500;
-}
-
-.menu__price {
-  font-variant-numeric: tabular-nums; /* aligns decimals neatly */
-  font-weight: 700;
-  color: var(--brand-red);
-  text-align: right;
-  min-width: 60px;
-}
-
-/* === FOOTER (optional if you have one) === */
-footer {
-  background: var(--brand-red);
-  color: white;
-  text-align: center;
-  padding: 1rem;
-  font-weight: 600;
-}
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  max-width: 100%;
-  overflow-x: hidden;
-}
+.btn-primary:hover { opacity: .9; }
