@@ -61,11 +61,15 @@ const MENU: MenuItem[] = [
   { id: "vegan-link", name: "Vegan Link", price: 9.49, category: "Dogs & Links", badge: "Vegan" },
   { id: "pastrami-dog", name: "Pastrami Dog", price: 9.99, category: "Dogs & Links" },
 
-  // Keep the existing items for other categories
-  { id: "turkey-burger", name: "Turkey Burger", price: 8.99, category: "Burgers & Sandwiches" },
-  { id: "salmon-burger", name: "Salmon Burger", price: 8.99, category: "Burgers & Sandwiches" },
-  { id: "vegan-burger", name: "Vegan Burger", price: 12.99, category: "Burgers & Sandwiches", badge: "Vegan" },
-  { id: "pastrami", name: "Pastrami Sandwich", price: 8.99, category: "Burgers & Sandwiches" },
+  // Burgers & Sandwiches - Updated with new items and pricing
+  { id: "turkey-burger", name: "Turkey Burger", price: 9.99, category: "Burgers & Sandwiches" },
+  { id: "salmon-burger", name: "Salmon Burger", price: 9.99, category: "Burgers & Sandwiches" },
+  { id: "vegan-burger", name: "Vegan Burger", price: 13.99, category: "Burgers & Sandwiches", badge: "Vegan" },
+  { id: "pastrami-burger", name: "Pastrami Burger", price: 9.99, category: "Burgers & Sandwiches" },
+  { id: "double-turkey-burger", name: "Double Turkey Burger", price: 13.99, category: "Burgers & Sandwiches" },
+  { id: "double-salmon-burger", name: "Double Salmon Burger", price: 13.99, category: "Burgers & Sandwiches" },
+  { id: "double-vegan-burger", name: "Double Vegan Burger", price: 13.99, category: "Burgers & Sandwiches", badge: "Vegan" },
+  { id: "just-bun", name: "Just Bun", price: 1.00, category: "Burgers & Sandwiches" },
 
   { id: "cheese", name: "Cheese (American, Cheddar)", price: 0.75, category: "Sides & Extras" },
   { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Sides & Extras", badge: "Vegan" },
