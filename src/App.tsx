@@ -2,16 +2,6 @@ import { useMemo, useState } from "react";
 import "./index.css";
 import "./App.css";
 
-/* -------------------- Theme -------------------- */
-const THEME = {
-  bg: "#CFB857",
-  text: "#111111",
-  card: "#FFFFFF",
-  red: "#C7372F",
-  black: "#111111",
-  border: "rgba(0,0,0,0.16)",
-};
-
 /* -------------------- Types -------------------- */
 type MenuItem = {
   id: string;
@@ -104,17 +94,15 @@ function groupByCategory(items: MenuItem[]) {
 
 /* -------------------- App -------------------- */
 export default function RestaurantApp() {
-  const [query, setQuery] = useState("");
   const [category, setCategory] = useState<MenuItem["category"] | "All">("All");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [mode, setMode] = useState<"Pickup" | "Delivery">("Pickup");
 
   const filtered = useMemo(() => {
-    let list = MENU.filter((m) => m.name.toLowerCase().includes(query.toLowerCase().trim()));
-    if (category !== "All") list = list.filter((m) => m.category === category);
-    return list;
-  }, [query, category]);
+    if (category === "All") return MENU;
+    return MENU.filter((m) => m.category === category);
+  }, [category]);
 
   const grouped = useMemo(() => groupByCategory(filtered), [filtered]);
 
