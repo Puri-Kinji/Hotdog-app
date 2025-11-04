@@ -7,7 +7,7 @@ type MenuItem = {
   id: string;
   name: string;
   price: number;
-  category: "Dogs & Links" | "Burgers & Sandwiches" | "Sides & Extras" | "Drinks" | "Desserts";
+  category: "Dogs & Links" | "Burgers & Sandwiches" | "Chips" | "Fries" | "Chili Bowls" | "Extras" | "Drinks" | "Desserts";
   desc?: string;
   badge?: "Vegan" | "Spicy" | "Kosher" | "New" | "Popular";
 };
@@ -51,7 +51,7 @@ const RESTAURANT = {
 
 /* -------------------- Data -------------------- */
 const MENU: MenuItem[] = [
-  // Dogs & Links - Updated with correct pricing from your image
+  // Dogs & Links
   { id: "turkey-dog", name: "Turkey Dog", price: 4.99, category: "Dogs & Links" },
   { id: "beef-dog", name: "Beef Dog (Kosher)", price: 6.49, category: "Dogs & Links", badge: "Kosher" },
   { id: "beef-jumbo", name: "Beef Jumbo (Kosher)", price: 7.99, category: "Dogs & Links", badge: "Kosher" },
@@ -61,7 +61,7 @@ const MENU: MenuItem[] = [
   { id: "vegan-link", name: "Vegan Link", price: 9.49, category: "Dogs & Links", badge: "Vegan" },
   { id: "pastrami-dog", name: "Pastrami Dog", price: 9.99, category: "Dogs & Links" },
 
-  // Burgers & Sandwiches - Updated with new items and pricing
+  // Burgers & Sandwiches
   { id: "turkey-burger", name: "Turkey Burger", price: 9.99, category: "Burgers & Sandwiches" },
   { id: "salmon-burger", name: "Salmon Burger", price: 9.99, category: "Burgers & Sandwiches" },
   { id: "vegan-burger", name: "Vegan Burger", price: 13.99, category: "Burgers & Sandwiches", badge: "Vegan" },
@@ -71,20 +71,78 @@ const MENU: MenuItem[] = [
   { id: "double-vegan-burger", name: "Double Vegan Burger", price: 13.99, category: "Burgers & Sandwiches", badge: "Vegan" },
   { id: "just-bun", name: "Just Bun", price: 1.00, category: "Burgers & Sandwiches" },
 
-  { id: "cheese", name: "Cheese (American, Cheddar)", price: 0.75, category: "Sides & Extras" },
-  { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Sides & Extras", badge: "Vegan" },
-  { id: "beef-chili-scoop", name: "Beef Chili Scoop", price: 1.0, category: "Sides & Extras" },
-  { id: "vegan-chili-scoop", name: "Vegan Chili Scoop", price: 2.49, category: "Sides & Extras", badge: "Vegan" },
+  // Chips
+  { id: "chips", name: "Chips", price: 1.25, category: "Chips" },
+  { id: "beef-chili-fritos", name: "Beef Chili Fritos", price: 3.99, category: "Chips" },
+  { id: "beef-chili-cheese-fritos", name: "Beef Chili Cheese Fritos", price: 5.49, category: "Chips" },
+  { id: "vegan-chili-fritos", name: "Vegan Chili Fritos", price: 6.49, category: "Chips", badge: "Vegan" },
+  { id: "vegan-chili-fritos-regular-cheese", name: "Vegan Chili Fritos w/Regular Cheese", price: 7.49, category: "Chips" },
+  { id: "vegan-chili-fritos-vegan-cheese", name: "Vegan Chili Fritos w/Vegan Cheese", price: 8.49, category: "Chips", badge: "Vegan" },
 
-  { id: "small-cup", name: "Small Cup (Lemonade, Playas Punch)", price: 3.99, category: "Drinks" },
-  { id: "large-cup", name: "Large Cup (Lemonade, Playas Punch)", price: 4.99, category: "Drinks" },
-  { id: "soda-can", name: "Soda Can", price: 2.25, category: "Drinks" },
+  // Fries
+  { id: "fries", name: "Fries", price: 5.49, category: "Fries" },
+  { id: "beef-chili-fries", name: "Beef Chili Fries", price: 6.99, category: "Fries" },
+  { id: "beef-chili-fries-regular-cheese", name: "Beef Chili Fries w/Regular Cheese", price: 7.49, category: "Fries" },
+  { id: "vegan-chili-fries", name: "Vegan Chili Fries", price: 8.49, category: "Fries", badge: "Vegan" },
+  { id: "vegan-chili-fries-regular-cheese", name: "Vegan Chili Fries w/Regular Cheese", price: 8.99, category: "Fries" },
+  { id: "vegan-chili-fries-vegan-cheese", name: "Vegan Chili Fries w/Vegan Cheese", price: 11.99, category: "Fries", badge: "Vegan" },
+
+  // Chili Bowls
+  { id: "beef-chili-bowl-small", name: "Beef Chili Bowl Small", price: 4.49, category: "Chili Bowls" },
+  { id: "beef-chili-bowl-medium", name: "Beef Chili Bowl Medium", price: 6.49, category: "Chili Bowls" },
+  { id: "beef-chili-bowl-large", name: "Beef Chili Bowl Large", price: 8.49, category: "Chili Bowls" },
+  { id: "vegan-chili-bowl-small", name: "Vegan Chili Bowl Small", price: 7.99, category: "Chili Bowls", badge: "Vegan" },
+  { id: "vegan-chili-bowl-medium", name: "Vegan Chili Bowl Medium", price: 11.99, category: "Chili Bowls", badge: "Vegan" },
+  { id: "vegan-chili-bowl-large", name: "Vegan Chili Bowl Large", price: 15.99, category: "Chili Bowls", badge: "Vegan" },
+
+  // Extras
+  { id: "jamaican-patty", name: "Jamaican Patty", price: 5.00, category: "Extras" },
+  { id: "cheese", name: "Cheese (American, Cheddar)", price: 0.75, category: "Extras" },
+  { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Extras", badge: "Vegan" },
+  { id: "beef-chili-scoop", name: "Beef Chili Scoop", price: 1.0, category: "Extras" },
+  { id: "vegan-chili-scoop", name: "Vegan Chili Scoop", price: 2.49, category: "Extras", badge: "Vegan" },
+
+  // Desserts
+  { id: "cakes", name: "Cakes", price: 8.49, category: "Desserts" },
+  { id: "vegan-cakes", name: "Vegan Cakes", price: 7.49, category: "Desserts", badge: "Vegan" },
+  { id: "cheese-cake", name: "Cheese Cake", price: 7.99, category: "Desserts" },
+  { id: "cobbler", name: "Cobbler", price: 4.99, category: "Desserts" },
+  { id: "coffee-cake", name: "Coffee Cake", price: 4.99, category: "Desserts" },
+  { id: "banana-pudding", name: "Banana Pudding", price: 6.99, category: "Desserts" },
+  { id: "pecan-pie", name: "Pecan Pie", price: 4.99, category: "Desserts" },
+  { id: "bean-pie", name: "Bean Pie", price: 4.99, category: "Desserts" },
+  { id: "sweet-potato-pie", name: "Sweet Potato Pie", price: 4.99, category: "Desserts" },
+
+  // Drinks
+  { id: "small-drink", name: "Small Drink", price: 4.49, category: "Drinks" },
+  { id: "large-drink", name: "Large Drink", price: 5.49, category: "Drinks" },
+  { id: "bottled-water", name: "Bottled Water", price: 1.49, category: "Drinks" },
+  { id: "can-soda", name: "Can Soda", price: 2.49, category: "Drinks" },
+  { id: "snapple", name: "Snapple", price: 3.79, category: "Drinks" },
+  { id: "welches", name: "Welches", price: 3.79, category: "Drinks" },
+  { id: "playas-punch-half-gallon", name: "Playa's Punch 1/2 Gallon", price: 9.99, category: "Drinks" },
+  { id: "playas-punch-two-half-gallons", name: "Playa's Punch 2 Half Gallons", price: 17.99, category: "Drinks" },
+  { id: "coconut-water", name: "Coconut Water", price: 5.49, category: "Drinks" },
+  { id: "honey-punch", name: "Honey Punch", price: 7.99, category: "Drinks" },
+  { id: "shirley-temple-soda", name: "Shirley Temple Soda", price: 3.79, category: "Drinks" },
+  { id: "root-beer", name: "Root Beer", price: 3.79, category: "Drinks" },
+  { id: "creme-soda", name: "Creme Soda", price: 3.79, category: "Drinks" },
+  { id: "ginger-beer", name: "Ginger Beer", price: 3.79, category: "Drinks" },
+  { id: "blood-orange", name: "Blood Orange", price: 3.79, category: "Drinks" },
+  { id: "apryls-juice", name: "Apryl's Juice", price: 7.99, category: "Drinks" },
+  { id: "large-ice-cup", name: "Large Ice Cup", price: 1.00, category: "Drinks" },
+  { id: "large-cup-water", name: "Large Cup of Water", price: 1.00, category: "Drinks" },
+  { id: "water-cup", name: "Water Cup", price: 0.00, category: "Drinks" },
+  { id: "playas-punch-to-go", name: "Playas Punch to go (16 Oz)", price: 4.79, category: "Drinks" },
 ];
 
 const CATEGORIES: MenuItem["category"][] = [
   "Dogs & Links",
   "Burgers & Sandwiches",
-  "Sides & Extras",
+  "Chips",
+  "Fries", 
+  "Chili Bowls",
+  "Extras",
   "Drinks",
   "Desserts",
 ];
