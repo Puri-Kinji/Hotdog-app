@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import "./index.css";
 import "./App.css";
 
-/* -------------------- Brand Theme -------------------- */
+/* -------------------- Theme -------------------- */
 const THEME = {
   bg: "#CFB857",
   text: "#111111",
@@ -21,9 +21,16 @@ type MenuItem = {
   desc?: string;
   badge?: "Vegan" | "Spicy" | "Kosher" | "New" | "Popular";
 };
-type CartLine = { id: string; name: string; price: number; qty: number; note?: string };
 
-/* -------------------- Restaurant Config -------------------- */
+type CartLine = {
+  id: string;
+  name: string;
+  price: number;
+  qty: number;
+  note?: string;
+};
+
+/* -------------------- Config -------------------- */
 const RESTAURANT = {
   name: "Earle's on Crenshaw",
   tagline: "Save time by ordering online!",
@@ -40,30 +47,43 @@ const RESTAURANT = {
   ],
   links: {
     uberEats:
-      "https://www.ubereats.com/store/earles-on-crenshaw/li55HwiTQAWeXlk3hpvg5A",
+      "https://www.ubereats.com/store/earles-on-crenshaw/li55HwiTQAWeXlk3hpvg5A?diningMode=DELIVERY&pl=JTdCJTIyYWRkcmVzcyUyMiUzQSUyMjM4NjQlMjBDcmVuc2hhdyUyMEJsdmQlMjIlMkMlMjJyZWZlcmVuY2UlMjIlM0ElMjJiZmFhZGRkMC1jNjdhLWIwMjAtZjk1Mi1iN2IzZGViZmViYjklMjIlMkMlMjJyZWZlcmVuY2VUeXBlJTIyJTNBJTIydWJlcl9wbGFjZXMlMjIlMkMlMjJsYXRpdHVkZSUyMiUzQTM0LjAxNTQzOSUyQyUyMmxvbmdpdHVkZSUyMiUzQS0xMTguMzM0Nzg1JTdE",
     doorDash:
-      "https://www.doordash.com/store/earle's-los-angeles-260651/81230038/",
+      "https://www.doordash.com/store/earle's-los-angeles-260651/81230038/?srsltid=AfmBOooLlowBi9lmHJ_KRnOnuicsoQpXRU6hvtvk-cpwmmspMWqFEqnO",
     instagram: "https://www.instagram.com/earlesoncrenshaw/",
     tiktok: "https://www.tiktok.com/@earlesrestaurant",
   },
-  promo: { label: "ORDER NOW", text: "Use EARLES5 for $5 off total today" },
+  promo: {
+    label: "ORDER NOW",
+    text: "Use EARLES5 for $5 off total today",
+  },
 };
 
-/* -------------------- Menu Data -------------------- */
+/* -------------------- Data -------------------- */
 const MENU: MenuItem[] = [
   { id: "turkey-dog", name: "Turkey Dog", price: 4.49, category: "Dogs & Links" },
   { id: "beef-dog", name: "Beef Dog (Kosher)", price: 5.75, category: "Dogs & Links", badge: "Kosher" },
+  { id: "beef-jumbo", name: "Beef Jumbo Dog (Kosher)", price: 7.49, category: "Dogs & Links", badge: "Kosher" },
   { id: "spicy-beef-link", name: "Spicy Beef Link", price: 8.99, category: "Dogs & Links", badge: "Spicy" },
   { id: "chicken-link", name: "Chicken Link", price: 8.99, category: "Dogs & Links" },
+  { id: "vegan-dog", name: "Vegan Dog", price: 7.49, category: "Dogs & Links", badge: "Vegan" },
   { id: "vegan-link", name: "Vegan Link (Spicy)", price: 8.49, category: "Dogs & Links", badge: "Vegan" },
+
   { id: "turkey-burger", name: "Turkey Burger", price: 8.99, category: "Burgers & Sandwiches" },
   { id: "salmon-burger", name: "Salmon Burger", price: 8.99, category: "Burgers & Sandwiches" },
   { id: "vegan-burger", name: "Vegan Burger", price: 12.99, category: "Burgers & Sandwiches", badge: "Vegan" },
+  { id: "pastrami", name: "Pastrami Sandwich", price: 8.99, category: "Burgers & Sandwiches" },
+
   { id: "cheese", name: "Cheese (American, Cheddar)", price: 0.75, category: "Sides & Extras" },
   { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Sides & Extras", badge: "Vegan" },
+  { id: "beef-chili-scoop", name: "Beef Chili Scoop", price: 1.0, category: "Sides & Extras" },
+  { id: "vegan-chili-scoop", name: "Vegan Chili Scoop", price: 2.49, category: "Sides & Extras", badge: "Vegan" },
+
   { id: "small-cup", name: "Small Cup (Lemonade, Playas Punch)", price: 3.99, category: "Drinks" },
   { id: "large-cup", name: "Large Cup (Lemonade, Playas Punch)", price: 4.99, category: "Drinks" },
+  { id: "soda-can", name: "Soda Can", price: 2.25, category: "Drinks" },
 ];
+
 const CATEGORIES: MenuItem["category"][] = [
   "Dogs & Links",
   "Burgers & Sandwiches",
@@ -74,6 +94,7 @@ const CATEGORIES: MenuItem["category"][] = [
 
 /* -------------------- Helpers -------------------- */
 const money = (n: number) => `$${n.toFixed(2)}`;
+
 function groupByCategory(items: MenuItem[]) {
   const m = new Map<MenuItem["category"], MenuItem[]>();
   for (const c of CATEGORIES) m.set(c, []);
@@ -83,54 +104,57 @@ function groupByCategory(items: MenuItem[]) {
 
 /* -------------------- App -------------------- */
 export default function RestaurantApp() {
+  const [query, setQuery] = useState("");
   const [category, setCategory] = useState<MenuItem["category"] | "All">("All");
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [noteFor, setNoteFor] = useState<string | null>(null);
   const [mode, setMode] = useState<"Pickup" | "Delivery">("Pickup");
 
   const filtered = useMemo(() => {
-    let list = MENU;
+    let list = MENU.filter((m) => m.name.toLowerCase().includes(query.toLowerCase().trim()));
     if (category !== "All") list = list.filter((m) => m.category === category);
     return list;
-  }, [category]);
+  }, [query, category]);
+
   const grouped = useMemo(() => groupByCategory(filtered), [filtered]);
 
   const subtotal = cart.reduce((s, l) => s + l.price * l.qty, 0);
-  const tax = +(subtotal * 0.095).toFixed(2);
+  const taxRate = 0.095;
+  const tax = +(subtotal * taxRate).toFixed(2);
   const total = +(subtotal + tax).toFixed(2);
 
-  const addToCart = (item: MenuItem) =>
+  function addToCart(item: MenuItem) {
     setCart((c) => {
-      const e = c.find((l) => l.id === item.id);
-      return e
+      const exists = c.find((l) => l.id === item.id);
+      return exists
         ? c.map((l) => (l.id === item.id ? { ...l, qty: l.qty + 1 } : l))
         : [...c, { id: item.id, name: item.name, price: item.price, qty: 1 }];
     });
+  }
+  function removeFromCart(id: string) {
+    setCart((c) => c.filter((l) => l.id !== id));
+  }
+  function changeQty(id: string, delta: number) {
+    setCart((c) =>
+      c
+        .map((l) => (l.id === id ? { ...l, qty: Math.max(1, l.qty + delta) } : l))
+        .filter((l) => l.qty > 0),
+    );
+  }
+  function applyNote(id: string, note: string) {
+    setCart((c) => c.map((l) => (l.id === id ? { ...l, note } : l)));
+    setNoteFor(null);
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: THEME.bg, color: THEME.text }}>
-      {/* HEADER */}
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 20,
-          background: THEME.bg,
-          borderBottom: `1px solid ${THEME.border}`,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "clamp(8px, 2vw, 16px)",
-            flexWrap: "wrap",
-            gap: 8,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      {/* Header */}
+      <header className="site-header">
+        <div className="header-row flex items-center gap-12" style={{ justifyContent: "space-between" }}>
+          <div className="flex items-center gap-12" style={{ width: "100%" }}>
             <div
               style={{
+                flexShrink: 0,
                 width: 40,
                 height: 40,
                 borderRadius: 16,
@@ -143,65 +167,69 @@ export default function RestaurantApp() {
             >
               E
             </div>
-            <div>
-              <h1 style={{ fontSize: "clamp(16px, 4vw, 20px)", fontWeight: 600, margin: 0 }}>
-                {RESTAURANT.name}
-              </h1>
-              <p style={{ fontSize: "clamp(12px, 3vw, 14px)", margin: 0 }}>
-                {RESTAURANT.tagline}
-              </p>
+            <div className="flex-1">
+              <h1 className="h1">{RESTAURANT.name}</h1>
+              <p style={{ fontSize: "clamp(13px, 1vw + 9px, 14px)", opacity: 0.9 }}>{RESTAURANT.tagline}</p>
             </div>
-          </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Toggle value={mode} onChange={setMode} options={["Pickup", "Delivery"]} />
+            {/* Search (hidden on mobile; show if you want) */}
+            <div
+              style={{
+                display: "none",
+                alignItems: "center",
+                gap: 8,
+                background: "#fff",
+                borderRadius: 12,
+                padding: "8px 12px",
+              }}
+              className="md:flex"
+            >
+              <input
+                aria-label="Search menu"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search menu…"
+                style={{ background: "transparent", outline: "none", fontSize: 14, minWidth: 220 }}
+              />
+            </div>
+
+            {/* Mode toggle + Delivery link */}
+            <div className="flex items-center gap-8" style={{ marginLeft: 8 }}>
+              <Toggle value={mode} onChange={setMode} options={["Pickup", "Delivery"]} />
+              {mode === "Delivery" && (
+                <a
+                  href={RESTAURANT.links.uberEats}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ fontSize: 14, textDecoration: "underline", textUnderlineOffset: 3 }}
+                >
+                  Order on Uber Eats
+                </a>
+              )}
+            </div>
           </div>
         </div>
 
-        <div
-          style={{
-            background: THEME.bg,
-            borderTop: `1px solid ${THEME.border}`,
-            padding: "8px 16px",
-            display: "flex",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 12,
-            fontSize: "clamp(12px, 3vw, 14px)",
-          }}
-        >
-          <a
-            href={RESTAURANT.links.doorDash}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              padding: "6px 12px",
-              borderRadius: 10,
-              background: THEME.red,
-              color: "#fff",
-              fontWeight: 600,
-              textDecoration: "none",
-            }}
-          >
-            {RESTAURANT.promo.label}
-          </a>
-          <span>{RESTAURANT.promo.text}</span>
+        {/* Promo strip */}
+        <div style={{ background: THEME.bg, borderTop: `1px solid ${THEME.border}` }}>
+          <div className="promo-row flex items-center gap-12" style={{ fontSize: 14 }}>
+            <a
+              href={RESTAURANT.links.doorDash}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-primary"
+              style={{ borderRadius: 10, fontWeight: 600, textDecoration: "none" }}
+            >
+              {RESTAURANT.promo.label}
+            </a>
+            <span>{RESTAURANT.promo.text}</span>
+          </div>
         </div>
       </header>
 
-      {/* MAIN */}
-      <main
-        style={{
-          width: "100%",
-          maxWidth: "clamp(320px, 95%, 1280px)",
-          margin: "0 auto",
-          padding: "clamp(12px, 2vw, 24px)",
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: "clamp(16px, 3vw, 24px)",
-        }}
-      >
-        {/* MENU */}
+      {/* Main */}
+      <main className="app-container main-grid">
+        {/* Left: Menu */}
         <section>
           <CategoryBar
             active={category}
@@ -215,68 +243,21 @@ export default function RestaurantApp() {
           {[...grouped.entries()].map(([cat, items]) =>
             items.length ? (
               <div key={cat} style={{ marginBottom: 24 }}>
-                <h2 style={{ fontSize: "clamp(16px, 4vw, 18px)", fontWeight: 600 }}>{cat}</h2>
-                <div
-                  style={{
-                    display: "grid",
-                    gap: "clamp(12px, 2vw, 20px)",
-                    gridTemplateColumns:
-                      "repeat(auto-fit, minmax(clamp(150px, 45%, 320px), 1fr))",
-                  }}
-                >
+                <h2 className="h2">{cat}</h2>
+                <div className="menu-grid">
                   {items.map((it) => (
-                    <article
-                      key={it.id}
-                      style={{
-                        borderRadius: 16,
-                        border: `1px solid ${THEME.border}`,
-                        background: THEME.card,
-                        padding: "clamp(8px, 2vw, 16px)",
-                        boxShadow: "0 1px 0 rgba(0,0,0,0.02)",
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                    <article key={it.id} className="card">
+                      <div className="flex justify-between gap-12">
                         <div>
-                          <h3
-                            style={{
-                              fontWeight: 600,
-                              lineHeight: 1.15,
-                              fontSize: "clamp(14px, 3vw, 16px)",
-                            }}
-                          >
-                            {it.name}
-                          </h3>
-                          {it.badge && (
-                            <span
-                              style={{
-                                display: "inline-block",
-                                marginTop: 8,
-                                fontSize: 12,
-                                padding: "4px 8px",
-                                borderRadius: 999,
-                                background: THEME.black,
-                                color: "#fff",
-                              }}
-                            >
-                              {it.badge}
-                            </span>
+                          <h3 style={{ fontWeight: 600, lineHeight: 1.15, margin: 0 }}>{it.name}</h3>
+                          {it.desc && (
+                            <p style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>{it.desc}</p>
                           )}
+                          {it.badge && <span className="badge">{it.badge}</span>}
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontWeight: 700 }}>{money(it.price)}</div>
-                          <button
-                            onClick={() => addToCart(it)}
-                            style={{
-                              marginTop: 8,
-                              fontSize: 14,
-                              padding: "6px 12px",
-                              borderRadius: 12,
-                              background: THEME.red,
-                              color: "#fff",
-                              border: "none",
-                              cursor: "pointer",
-                            }}
-                          >
+                          <div className="price">{money(it.price)}</div>
+                          <button onClick={() => addToCart(it)} className="btn btn-primary" style={{ marginTop: 8 }}>
                             Add
                           </button>
                         </div>
@@ -285,50 +266,144 @@ export default function RestaurantApp() {
                   ))}
                 </div>
               </div>
-            ) : null
+            ) : null,
           )}
         </section>
 
-        {/* CART */}
-        <aside
-          style={{
-            position: "sticky",
-            top: 104,
-            height: "max-content",
-            maxHeight: "80vh",
-            overflowY: "auto",
-          }}
-        >
-          <div
-            style={{
-              borderRadius: 16,
-              border: `1px solid ${THEME.border}`,
-              background: THEME.card,
-              padding: 16,
-            }}
-          >
-            <h2 style={{ fontSize: 18, fontWeight: 600 }}>Your Order</h2>
-            {!cart.length && <p>Your cart is empty.</p>}
-            {!!cart.length &&
-              cart.map((l) => (
-                <div key={l.id} style={{ marginTop: 8 }}>
-                  <div>{l.name}</div>
-                  <div>{money(l.price * l.qty)}</div>
-                </div>
-              ))}
+        {/* Right: Cart */}
+        <aside className="cart-aside">
+          <div className="card">
+            <h2 className="h2" style={{ marginBottom: 0 }}>Your Order</h2>
+            {!cart.length && (
+              <p style={{ fontSize: 14, opacity: 0.8, marginTop: 8 }}>
+                Your cart is empty. Add something tasty!
+              </p>
+            )}
+
             {!!cart.length && (
-              <div style={{ marginTop: 12, fontWeight: 600 }}>
-                Total: {money(total)}
+              <div style={{ marginTop: 12 }}>
+                {cart.map((l) => (
+                  <div
+                    key={l.id}
+                    style={{ borderBottom: `1px solid ${THEME.border}`, paddingBottom: 12, marginBottom: 12 }}
+                  >
+                    <div className="flex justify-between gap-12">
+                      <div>
+                        <div style={{ fontWeight: 600, lineHeight: 1.15 }}>{l.name}</div>
+                        {l.note && (
+                          <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>Note: {l.note}</div>
+                        )}
+                      </div>
+                      <div style={{ textAlign: "right", minWidth: 140 }}>
+                        <div style={{ fontSize: 14 }}>{money(l.price * l.qty)}</div>
+                        <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <button onClick={() => changeQty(l.id, -1)} className="btn">-</button>
+                          <span style={{ width: 24, textAlign: "center" }}>{l.qty}</span>
+                          <button onClick={() => changeQty(l.id, +1)} className="btn">+</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                      <button onClick={() => setNoteFor(l.id)} className="btn-ghost">
+                        {l.note ? "Edit note" : "Add note"}
+                      </button>
+                      <button onClick={() => removeFromCart(l.id)} className="btn-ghost" style={{ color: THEME.red }}>
+                        Remove
+                      </button>
+                    </div>
+
+                    {noteFor === l.id && (
+                      <NoteEditor
+                        initial={l.note || ""}
+                        onCancel={() => setNoteFor(null)}
+                        onSave={(val) => applyNote(l.id, val)}
+                      />
+                    )}
+                  </div>
+                ))}
+
+                {/* Totals */}
+                <div style={{ fontSize: 14 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+                    <span>Subtotal</span><span>{money(subtotal)}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+                    <span>Tax</span><span>{money(tax)}</span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      paddingTop: 8,
+                      marginTop: 8,
+                      borderTop: `1px solid ${THEME.border}`,
+                      fontWeight: 700,
+                      fontSize: 16,
+                    }}
+                  >
+                    <span>Total</span><span>{money(total)}</span>
+                  </div>
+                </div>
+
+                {/* Checkout actions */}
+                <div style={{ marginTop: 12 }}>
+                  {mode === "Delivery" ? (
+                    <a
+                      href={RESTAURANT.links.uberEats}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-primary"
+                      style={{ display: "block", width: "100%", textAlign: "center" }}
+                    >
+                      Continue on Uber Eats
+                    </a>
+                  ) : (
+                    <button className="btn btn-primary" style={{ width: "100%" }}>
+                      Place Pickup Order (demo)
+                    </button>
+                  )}
+                  <p style={{ fontSize: 12, opacity: 0.7, textAlign: "center", marginTop: 6 }}>
+                    * Online checkout not wired in this demo. Link out to delivery partners or add your own API.
+                  </p>
+                </div>
               </div>
             )}
           </div>
+
+          {/* Info card */}
+          <div className="card" style={{ marginTop: 16, fontSize: 14 }}>
+            <div style={{ fontWeight: 700 }}>Visit us</div>
+            <div style={{ marginTop: 4 }}>{RESTAURANT.address}</div>
+            <div style={{ marginTop: 4 }}>{RESTAURANT.phone}</div>
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {RESTAURANT.hours.map((h) => (
+                <div key={h.d} style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ opacity: 0.7 }}>{h.d}</span>
+                  <span>{h.h}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </aside>
       </main>
+
+      {/* Footer */}
+      <footer className="site-footer">
+        <div className="footer-row" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16, justifyContent: "space-between" }}>
+          <div>© {new Date().getFullYear()} {RESTAURANT.name}. All rights reserved.</div>
+          <div className="flex items-center gap-12">
+            <a href={RESTAURANT.links.instagram} target="_blank" rel="noreferrer" style={{ color: THEME.black, textDecoration: "underline dotted" }}>Instagram</a>
+            <a href={RESTAURANT.links.tiktok} target="_blank" rel="noreferrer" style={{ color: THEME.black, textDecoration: "underline dotted" }}>TikTok</a>
+            <a href={RESTAURANT.links.doorDash} target="_blank" rel="noreferrer" style={{ color: THEME.black, textDecoration: "underline dotted" }}>DoorDash</a>
+            <a href={RESTAURANT.links.uberEats} target="_blank" rel="noreferrer" style={{ color: THEME.black, textDecoration: "underline dotted" }}>Uber Eats</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
 
-/* -------------------- Components -------------------- */
+/* -------------------- Small Components -------------------- */
 function Toggle<T extends string>({
   value,
   onChange,
@@ -373,37 +448,59 @@ function CategoryBar({
 }) {
   const cats: (MenuItem["category"] | "All")[] = ["All", ...CATEGORIES];
   return (
-    <div
-      style={{
-        position: "sticky",
-        top: 104,
-        zIndex: 10,
-        background: THEME.bg,
-        padding: "12px 0",
-        margin: "0 0 16px",
-        borderBottom: `1px solid ${THEME.border}`,
-        overflowX: "auto",
-      }}
-    >
+    <div className="category-bar">
       <div style={{ display: "flex", gap: 8 }}>
         {cats.map((c) => (
           <button
             key={c}
             onClick={() => onPick(c)}
+            className="btn"
             style={{
-              padding: "6px 12px",
               borderRadius: 12,
               border: `1px solid ${active === c ? THEME.black : THEME.border}`,
               background: active === c ? THEME.black : "#fff",
               color: active === c ? "#fff" : THEME.text,
-              fontSize: "clamp(12px, 3vw, 14px)",
               whiteSpace: "nowrap",
-              cursor: "pointer",
             }}
           >
             {c} {c !== "All" && <span style={{ opacity: 0.6 }}>({counts[c] || 0})</span>}
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function NoteEditor({
+  initial,
+  onCancel,
+  onSave,
+}: {
+  initial: string;
+  onCancel: () => void;
+  onSave: (val: string) => void;
+}) {
+  const [val, setVal] = useState(initial);
+  return (
+    <div className="card" style={{ marginTop: 8, padding: 8 }}>
+      <textarea
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        rows={2}
+        style={{
+          width: "100%",
+          background: "#fff",
+          borderRadius: 8,
+          padding: 8,
+          fontSize: 14,
+          border: `1px solid ${THEME.border}`,
+          outline: "none",
+        }}
+        placeholder="Add ketchup, extra onions, no pickles…"
+      />
+      <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+        <button onClick={() => onSave(val)} className="btn btn-primary">Save note</button>
+        <button onClick={onCancel} className="btn">Cancel</button>
       </div>
     </div>
   );
