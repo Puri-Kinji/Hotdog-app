@@ -1,16 +1,16 @@
 import { useMemo, useState } from "react";
-import "./index.css"
-import './App.css'
+import "./index.css";
+import "./App.css";
 
 /* -------------------- Brand Theme -------------------- */
 const THEME = {
-  bg: "#CFB857",        // mustard yellow background
-  text: "#111111",      // near-black text
-  card: "#FFFFFF",      // white cards
-  red: "#C7372F",       // CTA red
-  black: "#111111",     // dark accents
-  border: "rgba(0,0,0,0.16)", // soft black border
-  container: 1152,      // max content width
+  bg: "#CFB857",
+  text: "#111111",
+  card: "#FFFFFF",
+  red: "#C7372F",
+  black: "#111111",
+  border: "rgba(0,0,0,0.16)",
+  container: 1152,
 };
 
 /* -------------------- Types -------------------- */
@@ -166,7 +166,7 @@ export default function RestaurantApp() {
       >
         <div
           style={{
-            maxWidth: "100%",
+            maxWidth: THEME.container,
             margin: "0 auto",
             padding: "12px 16px",
             display: "flex",
@@ -194,7 +194,7 @@ export default function RestaurantApp() {
             <p style={{ fontSize: 14, opacity: 0.9 }}>{RESTAURANT.tagline}</p>
           </div>
 
-          {/* Search */}
+          {/* Search (hidden on mobile) */}
           <div
             style={{
               display: "none",
@@ -235,7 +235,7 @@ export default function RestaurantApp() {
         <div style={{ background: THEME.bg, borderTop: `1px solid ${THEME.border}` }}>
           <div
             style={{
-              maxWidth: "100%",
+              maxWidth: THEME.container,
               margin: "0 auto",
               padding: "8px 16px",
               display: "flex",
@@ -265,17 +265,7 @@ export default function RestaurantApp() {
       </header>
 
       {/* Main */}
-      <main
-        style={{
-          maxWidth: "100%",
-          margin: "0 auto",
-          padding: "24px 16px",
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: 24,
-        }}
-        className="md:grid-cols-[1fr_360px]"
-      >
+      <main className="app-container main-grid">
         {/* Left: Menu */}
         <section>
           <CategoryBar
@@ -291,13 +281,7 @@ export default function RestaurantApp() {
             items.length ? (
               <div key={cat} style={{ marginBottom: 24 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>{cat}</h2>
-                <div
-                  style={{
-                    display: "grid",
-                    gap: 12,
-                     gridTemplateColumns: "1fr",
-                  }}
-                >
+                <div className="menu-grid">
                   {items.map((it) => (
                     <article
                       key={it.id}
@@ -359,7 +343,7 @@ export default function RestaurantApp() {
         </section>
 
         {/* Right: Cart */}
-      <aside style={{ position: "static" as const }}>
+        <aside className="cart-aside">
           <div
             style={{
               borderRadius: 16,
@@ -379,17 +363,33 @@ export default function RestaurantApp() {
             {!!cart.length && (
               <div style={{ marginTop: 12 }}>
                 {cart.map((l) => (
-                  <div key={l.id} style={{ borderBottom: `1px solid ${THEME.border}`, paddingBottom: 12, marginBottom: 12 }}>
+                  <div
+                    key={l.id}
+                    style={{
+                      borderBottom: `1px solid ${THEME.border}`,
+                      paddingBottom: 12,
+                      marginBottom: 12,
+                    }}
+                  >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                       <div>
                         <div style={{ fontWeight: 600, lineHeight: 1.15 }}>{l.name}</div>
                         {l.note && (
-                          <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>Note: {l.note}</div>
+                          <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
+                            Note: {l.note}
+                          </div>
                         )}
                       </div>
                       <div style={{ textAlign: "right", minWidth: 140 }}>
                         <div style={{ fontSize: 14 }}>{money(l.price * l.qty)}</div>
-                        <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        <div
+                          style={{
+                            marginTop: 6,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
                           <button
                             onClick={() => changeQty(l.id, -1)}
                             style={{
@@ -444,13 +444,26 @@ export default function RestaurantApp() {
                 {/* Totals */}
                 <div style={{ fontSize: 14 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
-                    <span>Subtotal</span><span>{money(subtotal)}</span>
+                    <span>Subtotal</span>
+                    <span>{money(subtotal)}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
-                    <span>Tax</span><span>{money(tax)}</span>
+                    <span>Tax</span>
+                    <span>{money(tax)}</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, marginTop: 8, borderTop: `1px solid ${THEME.border}`, fontWeight: 700, fontSize: 16 }}>
-                    <span>Total</span><span>{money(total)}</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      paddingTop: 8,
+                      marginTop: 8,
+                      borderTop: `1px solid ${THEME.border}`,
+                      fontWeight: 700,
+                      fontSize: 16,
+                    }}
+                  >
+                    <span>Total</span>
+                    <span>{money(total)}</span>
                   </div>
                 </div>
 
@@ -528,7 +541,7 @@ export default function RestaurantApp() {
       <footer style={{ borderTop: `1px solid ${THEME.border}` }}>
         <div
           style={{
-            maxWidth: "100%",
+            maxWidth: THEME.container,
             margin: "0 auto",
             padding: "24px 16px",
             fontSize: 14,
@@ -587,7 +600,7 @@ function Toggle<T extends string>({
   );
 }
 
- CategoryBar({
+function CategoryBar({
   active,
   onPick,
   counts,
@@ -598,21 +611,7 @@ function Toggle<T extends string>({
 }) {
   const cats: (MenuItem["category"] | "All")[] = ["All", ...CATEGORIES];
   return (
-    <div
-      className="catbar"
-  style={{
-    position: "static",               // default for mobile
-    zIndex: 10,
-    background: THEME.bg,
-    padding: "12px 0",
-    margin: "0 0 16px",
-    borderBottom: `1px solid ${THEME.border}`,
-    overflowX: "auto",
-    overflowY: "hidden",
-    WebkitOverflowScrolling: "touch",
-    touchAction: "pan-x",
-  }}
-    >
+    <div className="category-bar">
       <div style={{ display: "flex", gap: 8 }}>
         {cats.map((c) => (
           <button
@@ -637,7 +636,7 @@ function Toggle<T extends string>({
   );
 }
 
- NoteEditor({
+function NoteEditor({
   initial,
   onCancel,
   onSave,
@@ -672,8 +671,4 @@ function Toggle<T extends string>({
       </div>
     </div>
   );
-}
-
-@media (min-width: 1024px) {
-  .catbar { position: sticky; top: 104px; }
 }
