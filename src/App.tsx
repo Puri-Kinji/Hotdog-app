@@ -109,6 +109,7 @@ export default function RestaurantApp() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [mode, setMode] = useState<"Pickup" | "Delivery">("Pickup");
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   const filtered = useMemo(() => {
     let list = MENU.filter((m) => m.name.toLowerCase().includes(query.toLowerCase().trim()));
@@ -150,79 +151,99 @@ export default function RestaurantApp() {
     <div style={{ minHeight: "100vh", background: THEME.bg, color: THEME.text }}>
       {/* Header */}
       <header className="site-header">
-        <div className="header-row flex items-center gap-12" style={{ justifyContent: "space-between" }}>
-          <div className="flex items-center gap-12" style={{ width: "100%" }}>
+        <div className="header-container">
+          <div className="header-main">
             <div
+              className="logo"
               style={{
-                flexShrink: 0,
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 borderRadius: 16,
                 background: THEME.black,
                 color: "#fff",
                 display: "grid",
                 placeItems: "center",
                 fontWeight: 700,
+                flexShrink: 0,
               }}
             >
               E
             </div>
-            <div className="flex-1">
+            <div className="header-text">
               <h1 className="h1">{RESTAURANT.name}</h1>
-              <p style={{ fontSize: "clamp(13px, 1vw + 9px, 14px)", opacity: 0.9 }}>{RESTAURANT.tagline}</p>
+              <p className="tagline">{RESTAURANT.tagline}</p>
             </div>
 
-            {/* Search (hidden on mobile; show if you want) */}
-            <div
-              style={{
-                display: "none",
-                alignItems: "center",
-                gap: 8,
-                background: "#fff",
-                borderRadius: 12,
-                padding: "8px 12px",
-              }}
-              className="md:flex"
-            >
+            {/* Desktop Search */}
+            <div className="desktop-search">
               <input
                 aria-label="Search menu"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search menu…"
-                style={{ background: "transparent", outline: "none", fontSize: 14, minWidth: 220 }}
+                className="search-input"
               />
             </div>
 
+            {/* Mobile Search Trigger */}
+            <button
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
+              className="mobile-search-trigger"
+              aria-label="Search menu"
+            >
+              🔍
+            </button>
+
             {/* Mode toggle + Delivery link */}
-            <div className="flex items-center gap-8" style={{ marginLeft: 8 }}>
+            <div className="header-actions">
               <Toggle value={mode} onChange={setMode} options={["Pickup", "Delivery"]} />
               {mode === "Delivery" && (
                 <a
                   href={RESTAURANT.links.uberEats}
                   target="_blank"
                   rel="noreferrer"
-                  style={{ fontSize: 14, textDecoration: "underline", textUnderlineOffset: 3 }}
+                  className="delivery-link"
                 >
                   Order on Uber Eats
                 </a>
               )}
             </div>
           </div>
+
+          {/* Mobile Search */}
+          {showMobileSearch && (
+            <div className="mobile-search-container">
+              <input
+                aria-label="Search menu"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search menu…"
+                className="mobile-search-input"
+                autoFocus
+              />
+              <button 
+                onClick={() => setShowMobileSearch(false)}
+                className="close-search-btn"
+                aria-label="Close search"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Promo strip */}
-        <div style={{ background: THEME.bg, borderTop: `1px solid ${THEME.border}` }}>
-          <div className="promo-row flex items-center gap-12" style={{ fontSize: 14 }}>
+        <div className="promo-strip">
+          <div className="promo-container">
             <a
               href={RESTAURANT.links.doorDash}
               target="_blank"
               rel="noreferrer"
-              className="btn btn-primary"
-              style={{ borderRadius: 10, fontWeight: 600, textDecoration: "none" }}
+              className="promo-btn"
             >
               {RESTAURANT.promo.label}
             </a>
-            <span>{RESTAURANT.promo.text}</span>
+            <span className="promo-text">{RESTAURANT.promo.text}</span>
           </div>
         </div>
       </header>
@@ -230,7 +251,7 @@ export default function RestaurantApp() {
       {/* Main */}
       <main className="app-container main-grid">
         {/* Left: Menu */}
-        <section>
+        <section className="menu-section">
           <CategoryBar
             active={category}
             onPick={(c) => setCategory(c)}
@@ -242,22 +263,25 @@ export default function RestaurantApp() {
 
           {[...grouped.entries()].map(([cat, items]) =>
             items.length ? (
-              <div key={cat} style={{ marginBottom: 24 }}>
+              <div key={cat} className="category-section">
                 <h2 className="h2">{cat}</h2>
                 <div className="menu-grid">
                   {items.map((it) => (
-                    <article key={it.id} className="card">
-                      <div className="flex justify-between gap-12">
-                        <div>
-                          <h3 style={{ fontWeight: 600, lineHeight: 1.15, margin: 0 }}>{it.name}</h3>
+                    <article key={it.id} className="menu-card">
+                      <div className="menu-card-content">
+                        <div className="menu-item-info">
+                          <h3 className="menu-item-name">{it.name}</h3>
                           {it.desc && (
-                            <p style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>{it.desc}</p>
+                            <p className="menu-item-desc">{it.desc}</p>
                           )}
                           {it.badge && <span className="badge">{it.badge}</span>}
                         </div>
-                        <div style={{ textAlign: "right" }}>
+                        <div className="menu-item-actions">
                           <div className="price">{money(it.price)}</div>
-                          <button onClick={() => addToCart(it)} className="btn btn-primary" style={{ marginTop: 8 }}>
+                          <button 
+                            onClick={() => addToCart(it)} 
+                            className="btn btn-primary add-to-cart-btn"
+                          >
                             Add
                           </button>
                         </div>
@@ -272,42 +296,54 @@ export default function RestaurantApp() {
 
         {/* Right: Cart */}
         <aside className="cart-aside">
-          <div className="card">
-            <h2 className="h2" style={{ marginBottom: 0 }}>Your Order</h2>
+          <div className="cart-card">
+            <h2 className="h2">Your Order</h2>
             {!cart.length && (
-              <p style={{ fontSize: 14, opacity: 0.8, marginTop: 8 }}>
+              <p className="empty-cart-message">
                 Your cart is empty. Add something tasty!
               </p>
             )}
 
             {!!cart.length && (
-              <div style={{ marginTop: 12 }}>
+              <div className="cart-items">
                 {cart.map((l) => (
                   <div
                     key={l.id}
-                    style={{ borderBottom: `1px solid ${THEME.border}`, paddingBottom: 12, marginBottom: 12 }}
+                    className="cart-item"
                   >
-                    <div className="flex justify-between gap-12">
-                      <div>
-                        <div style={{ fontWeight: 600, lineHeight: 1.15 }}>{l.name}</div>
+                    <div className="cart-item-main">
+                      <div className="cart-item-info">
+                        <div className="cart-item-name">{l.name}</div>
                         {l.note && (
-                          <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>Note: {l.note}</div>
+                          <div className="cart-item-note">Note: {l.note}</div>
                         )}
                       </div>
-                      <div style={{ textAlign: "right", minWidth: 140 }}>
-                        <div style={{ fontSize: 14 }}>{money(l.price * l.qty)}</div>
-                        <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 6 }}>
-                          <button onClick={() => changeQty(l.id, -1)} className="btn">-</button>
-                          <span style={{ width: 24, textAlign: "center" }}>{l.qty}</span>
-                          <button onClick={() => changeQty(l.id, +1)} className="btn">+</button>
+                      <div className="cart-item-controls">
+                        <div className="cart-item-price">{money(l.price * l.qty)}</div>
+                        <div className="quantity-controls">
+                          <button 
+                            onClick={() => changeQty(l.id, -1)} 
+                            className="btn quantity-btn"
+                          >-</button>
+                          <span className="quantity-display">{l.qty}</span>
+                          <button 
+                            onClick={() => changeQty(l.id, +1)} 
+                            className="btn quantity-btn"
+                          >+</button>
                         </div>
                       </div>
                     </div>
-                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                      <button onClick={() => setNoteFor(l.id)} className="btn-ghost">
+                    <div className="cart-item-actions">
+                      <button 
+                        onClick={() => setNoteFor(l.id)} 
+                        className="btn-ghost"
+                      >
                         {l.note ? "Edit note" : "Add note"}
                       </button>
-                      <button onClick={() => removeFromCart(l.id)} className="btn-ghost" style={{ color: THEME.red }}>
+                      <button 
+                        onClick={() => removeFromCart(l.id)} 
+                        className="btn-ghost remove-btn"
+                      >
                         Remove
                       </button>
                     </div>
@@ -323,46 +359,35 @@ export default function RestaurantApp() {
                 ))}
 
                 {/* Totals */}
-                <div style={{ fontSize: 14 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+                <div className="cart-totals">
+                  <div className="total-line">
                     <span>Subtotal</span><span>{money(subtotal)}</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+                  <div className="total-line">
                     <span>Tax</span><span>{money(tax)}</span>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      paddingTop: 8,
-                      marginTop: 8,
-                      borderTop: `1px solid ${THEME.border}`,
-                      fontWeight: 700,
-                      fontSize: 16,
-                    }}
-                  >
+                  <div className="total-line final-total">
                     <span>Total</span><span>{money(total)}</span>
                   </div>
                 </div>
 
                 {/* Checkout actions */}
-                <div style={{ marginTop: 12 }}>
+                <div className="checkout-actions">
                   {mode === "Delivery" ? (
                     <a
                       href={RESTAURANT.links.uberEats}
                       target="_blank"
                       rel="noreferrer"
-                      className="btn btn-primary"
-                      style={{ display: "block", width: "100%", textAlign: "center" }}
+                      className="btn btn-primary checkout-btn"
                     >
                       Continue on Uber Eats
                     </a>
                   ) : (
-                    <button className="btn btn-primary" style={{ width: "100%" }}>
+                    <button className="btn btn-primary checkout-btn">
                       Place Pickup Order (demo)
                     </button>
                   )}
-                  <p style={{ fontSize: 12, opacity: 0.7, textAlign: "center", marginTop: 6 }}>
+                  <p className="checkout-disclaimer">
                     * Online checkout not wired in this demo. Link out to delivery partners or add your own API.
                   </p>
                 </div>
@@ -371,15 +396,15 @@ export default function RestaurantApp() {
           </div>
 
           {/* Info card */}
-          <div className="card" style={{ marginTop: 16, fontSize: 14 }}>
-            <div style={{ fontWeight: 700 }}>Visit us</div>
-            <div style={{ marginTop: 4 }}>{RESTAURANT.address}</div>
-            <div style={{ marginTop: 4 }}>{RESTAURANT.phone}</div>
-            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <div className="info-card">
+            <div className="info-title">Visit us</div>
+            <div className="info-address">{RESTAURANT.address}</div>
+            <div className="info-phone">{RESTAURANT.phone}</div>
+            <div className="hours-grid">
               {RESTAURANT.hours.map((h) => (
-                <div key={h.d} style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ opacity: 0.7 }}>{h.d}</span>
-                  <span>{h.h}</span>
+                <div key={h.d} className="hour-line">
+                  <span className="hour-day">{h.d}</span>
+                  <span className="hour-time">{h.h}</span>
                 </div>
               ))}
             </div>
@@ -389,13 +414,15 @@ export default function RestaurantApp() {
 
       {/* Footer */}
       <footer className="site-footer">
-        <div className="footer-row" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16, justifyContent: "space-between" }}>
-          <div>© {new Date().getFullYear()} {RESTAURANT.name}. All rights reserved.</div>
-          <div className="flex items-center gap-12">
-            <a href={RESTAURANT.links.instagram} target="_blank" rel="noreferrer" style={{ color: THEME.black, textDecoration: "underline dotted" }}>Instagram</a>
-            <a href={RESTAURANT.links.tiktok} target="_blank" rel="noreferrer" style={{ color: THEME.black, textDecoration: "underline dotted" }}>TikTok</a>
-            <a href={RESTAURANT.links.doorDash} target="_blank" rel="noreferrer" style={{ color: THEME.black, textDecoration: "underline dotted" }}>DoorDash</a>
-            <a href={RESTAURANT.links.uberEats} target="_blank" rel="noreferrer" style={{ color: THEME.black, textDecoration: "underline dotted" }}>Uber Eats</a>
+        <div className="footer-container">
+          <div className="footer-copyright">
+            © {new Date().getFullYear()} {RESTAURANT.name}. All rights reserved.
+          </div>
+          <div className="footer-links">
+            <a href={RESTAURANT.links.instagram} target="_blank" rel="noreferrer">Instagram</a>
+            <a href={RESTAURANT.links.tiktok} target="_blank" rel="noreferrer">TikTok</a>
+            <a href={RESTAURANT.links.doorDash} target="_blank" rel="noreferrer">DoorDash</a>
+            <a href={RESTAURANT.links.uberEats} target="_blank" rel="noreferrer">Uber Eats</a>
           </div>
         </div>
       </footer>
@@ -414,21 +441,12 @@ function Toggle<T extends string>({
   options: readonly T[] | T[];
 }) {
   return (
-    <div style={{ borderRadius: 12, background: "#fff", padding: 4, display: "inline-flex" }}>
+    <div className="toggle-container">
       {options.map((opt) => (
         <button
           key={String(opt)}
           onClick={() => onChange(opt as T)}
-          style={{
-            padding: "6px 12px",
-            borderRadius: 10,
-            fontSize: 14,
-            border: `1px solid ${value === opt ? THEME.black : "transparent"}`,
-            background: value === opt ? THEME.black : "transparent",
-            color: value === opt ? "#fff" : THEME.text,
-            opacity: value === opt ? 1 : 0.8,
-            cursor: "pointer",
-          }}
+          className={`toggle-option ${value === opt ? 'active' : ''}`}
         >
           {String(opt)}
         </button>
@@ -449,21 +467,14 @@ function CategoryBar({
   const cats: (MenuItem["category"] | "All")[] = ["All", ...CATEGORIES];
   return (
     <div className="category-bar">
-      <div style={{ display: "flex", gap: 8 }}>
+      <div className="category-scroll">
         {cats.map((c) => (
           <button
             key={c}
             onClick={() => onPick(c)}
-            className="btn"
-            style={{
-              borderRadius: 12,
-              border: `1px solid ${active === c ? THEME.black : THEME.border}`,
-              background: active === c ? THEME.black : "#fff",
-              color: active === c ? "#fff" : THEME.text,
-              whiteSpace: "nowrap",
-            }}
+            className={`category-btn ${active === c ? 'active' : ''}`}
           >
-            {c} {c !== "All" && <span style={{ opacity: 0.6 }}>({counts[c] || 0})</span>}
+            {c} {c !== "All" && <span className="category-count">({counts[c] || 0})</span>}
           </button>
         ))}
       </div>
@@ -482,23 +493,15 @@ function NoteEditor({
 }) {
   const [val, setVal] = useState(initial);
   return (
-    <div className="card" style={{ marginTop: 8, padding: 8 }}>
+    <div className="note-editor">
       <textarea
         value={val}
         onChange={(e) => setVal(e.target.value)}
-        rows={2}
-        style={{
-          width: "100%",
-          background: "#fff",
-          borderRadius: 8,
-          padding: 8,
-          fontSize: 14,
-          border: `1px solid ${THEME.border}`,
-          outline: "none",
-        }}
+        rows={3}
+        className="note-textarea"
         placeholder="Add ketchup, extra onions, no pickles…"
       />
-      <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+      <div className="note-actions">
         <button onClick={() => onSave(val)} className="btn btn-primary">Save note</button>
         <button onClick={onCancel} className="btn">Cancel</button>
       </div>
