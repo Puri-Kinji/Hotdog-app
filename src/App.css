@@ -1,138 +1,164 @@
-/* === RESET & BASE === */
+/* ====== Base / Variables ====== */
 * { box-sizing: border-box; }
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
+html, body { margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
+
+:root{
+  --bg: #CFB857;         /* mustard background */
+  --text: #111111;       /* near-black text */
+  --card: #FFFFFF;       /* white card panels */
+  --red: #C7372F;        /* accent red */
+  --border: rgba(0,0,0,0.16);
 }
 
-/* === RESPONSIVE FONT SCALING === */
-html {
-  font-size: clamp(14px, 1.2vw, 18px);
+/* Page background + fluid type */
+body{
+  background: var(--bg);
+  color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: #CFB857;
-  color: #111111;
+  font-size: clamp(14px, 1.02vw + 10px, 16px);
+  line-height: 1.4;
 }
 
-/* === THEME VARIABLES === */
-:root {
-  --brand-yellow: #CFB857;
-  --brand-red: #C7372F;
-  --brand-black: #111111;
-  --brand-border: rgba(0, 0, 0, 0.16);
-  --card-bg: #FFFFFF;
+/* ====== Layout ====== */
 
-  --pad-sm: clamp(8px, 1vw, 16px);
-  --pad-md: clamp(12px, 2vw, 24px);
-  --radius: clamp(8px, 1vw, 16px);
-}
-
-/* === FLEXIBLE CONTAINERS === */
-.app-container {
+/* Full width container; keep comfortable side padding */
+.app-container{
   width: 100%;
-  margin: 0;
-  padding: var(--pad-md);
-  box-sizing: border-box;
+  margin: 0 auto;
+  padding: clamp(12px, 2.5vw, 24px);
 }
 
-.main-grid {
+/* Main grid: 1 column on mobile, 2 columns (content + cart) on desktop */
+.main-grid{
   display: grid;
-  gap: var(--pad-md);
+  gap: clamp(16px, 3vw, 24px);
   grid-template-columns: 1fr;
 }
-
-@media (min-width: 1024px) {
-  .main-grid {
-    grid-template-columns: 2fr 1fr;
-    gap: 2vw;
+@media (min-width: 1024px){
+  .main-grid{
+    grid-template-columns: 1fr 360px;
   }
 }
 
-/* === MENU GRID === */
-.menu-grid {
+/* Menu card grid: grows more columns as space allows */
+.menu-grid{
   display: grid;
-  gap: var(--pad-md);
-  grid-template-columns: repeat(auto-fit, minmax(clamp(200px, 30%, 320px), 1fr));
+  gap: clamp(12px, 2vw, 16px);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px){
+  .menu-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (min-width: 1024px){
+  .menu-grid{ grid-template-columns: repeat(3, minmax(0,1fr)); }
 }
 
-/* === CART === */
-.cart-aside {
-  position: static;
-}
-@media (min-width: 1024px) {
-  .cart-aside {
-    position: sticky;
-    top: 104px;
-    height: max-content;
-  }
+/* Sticky cart only on desktop */
+.cart-aside{ position: static; }
+@media (min-width: 1024px){
+  .cart-aside{ position: sticky; top: 104px; height: max-content; }
 }
 
-/* === CATEGORY BAR === */
-.category-bar {
+/* Category bar: spans viewport, scrollable horizontally if needed */
+.category-bar{
   position: sticky;
   top: 104px;
   z-index: 10;
-  background: var(--brand-yellow);
-  padding: var(--pad-sm) 0;
-  margin-bottom: var(--pad-md);
-  border-bottom: 1px solid var(--brand-border);
+  background: var(--bg);
+  padding: 12px 0;
+  margin: 0 0 16px;
+  border-bottom: 1px solid var(--border);
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
 }
 
-@media (max-width: 1023px) {
-  .category-bar {
-    top: 0;
-  }
+/* ====== Cards / Elements ====== */
+
+.card{
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+  padding: clamp(12px, 2vw, 16px);
 }
 
-/* === TYPOGRAPHY === */
-h1 { font-size: clamp(1.6rem, 3vw, 2.6rem); margin: 0; }
-h2 { font-size: clamp(1.3rem, 2.5vw, 2rem); margin: 0 0 var(--pad-sm); }
-h3 { font-size: clamp(1rem, 2vw, 1.5rem); margin: 0; }
-p, span, button, input { font-size: clamp(0.9rem, 1.5vw, 1rem); }
-
-/* === CARD / ARTICLE STYLING === */
-article, .card {
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  padding: var(--pad-md);
-  border: 1px solid var(--brand-border);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+.h1{
+  font-size: clamp(18px, 1.6vw + 12px, 22px);
+  line-height: 1.1;
+  margin: 0;
 }
-
-/* === BUTTONS === */
-button,
-.btn-primary {
-  background: var(--brand-red);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  padding: var(--pad-sm) var(--pad-md);
+.h2{
+  font-size: clamp(16px, 1.2vw + 10px, 18px);
+  line-height: 1.2;
+  margin: 0 0 12px;
   font-weight: 600;
+}
+
+/* Buttons */
+.btn{
+  font-size: clamp(12px, 1vw + 8px, 14px);
+  padding: 6px 12px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+.btn-primary{
+  border: none;
+  background: var(--red);
+  color: #fff;
+}
+.btn-ghost{
+  background: transparent;
+  border-color: transparent;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-button:hover,
-.btn-primary:hover {
-  opacity: 0.85;
+/* Price text uses tabular nums so decimals align */
+.price{
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
 }
 
-/* === FOOTER === */
-footer {
-  background: var(--brand-black);
-  color: white;
-  text-align: center;
-  padding: var(--pad-md);
-  font-weight: 600;
-  margin-top: var(--pad-md);
+/* Promo strip spacing on full-width header rows */
+.header-row, .promo-row, .footer-row{
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px clamp(12px, 2.5vw, 16px);
 }
 
-/* === UTILITIES === */
-.text-center { text-align: center; }
-.hidden { display: none; }
+/* Utility */
+.flex{ display: flex; }
+.flex-1{ flex: 1; }
+.items-center{ align-items: center; }
+.justify-between{ justify-content: space-between; }
+.gap-8{ gap: 8px; }
+.gap-12{ gap: 12px; }
+
+/* Make the header stick and span the viewport */
+.site-header{
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Footer */
+.site-footer{
+  border-top: 1px solid var(--border);
+}
+
+/* Badge pill */
+.badge{
+  display: inline-block;
+  margin-top: 8px;
+  font-size: clamp(11px, 0.6vw + 9px, 12px);
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+}
