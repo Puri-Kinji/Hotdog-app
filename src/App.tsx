@@ -1,393 +1,391 @@
-/* ====== Customization Modal ====== */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
+import { useMemo, useState } from "react";
+import "./index.css";
+import "./App.css";
+
+/* -------------------- Types -------------------- */
+type MenuItem = {
+  id: string;
+  name: string;
+  price: number;
+  category: "Dogs & Links" | "Burgers & Sandwiches" | "Sides & Extras" | "Drinks" | "Desserts";
+  desc?: string;
+  badge?: "Vegan" | "Spicy" | "Kosher" | "New" | "Popular";
+};
+
+type CartLine = {
+  id: string;
+  name: string;
+  price: number;
+  qty: number;
+  note?: string;
+};
+
+/* -------------------- Config -------------------- */
+const RESTAURANT = {
+  name: "Earle's on Crenshaw",
+  tagline: "Save time by ordering online!",
+  address: "3864 Crenshaw BLVD",
+  phone: "(323) 299-2867",
+  hours: [
+    { d: "Mon", h: "11:00 AM – 9:00 PM" },
+    { d: "Tue", h: "11:00 AM – 9:00 PM" },
+    { d: "Wed", h: "11:00 AM – 9:00 PM" },
+    { d: "Thu", h: "11:00 AM – 9:00 PM" },
+    { d: "Fri", h: "11:00 AM – 9:00 PM" },
+    { d: "Sat", h: "11:00 AM – 9:00 PM" },
+    { d: "Sun", h: "Closed" },
+  ],
+  links: {
+    uberEats:
+      "https://www.ubereats.com/store/earles-on-crenshaw/li55HwiTQAWeXlk3hpvg5A?diningMode=DELIVERY&pl=JTdCJTIyYWRkcmVzcyUyMiUzQSUyMjM4NjQlMjBDcmVuc2hhdyUyMEJsdmQlMjIlMkMlMjJyZWZlcmVuY2UlMjIlM0ElMjJiZmFhZGRkMC1jNjdhLWIwMjAtZjk1Mi1iN2IzZGViZmViYjklMjIlMkMlMjJyZWZlcmVuY2VUeXBlJTIyJTNBJTIydWJlcl9wbGFjZXMlMjIlMkMlMjJsYXRpdHVkZSUyMiUzQTM0LjAxNTQzOSUyQyUyMmxvbmdpdHVkZSUyMiUzQS0xMTguMzM0Nzg1JTdE",
+    doorDash:
+      "https://www.doordash.com/store/earle's-los-angeles-260651/81230038/?srsltid=AfmBOooLlowBi9lmHJ_KRnOnuicsoQpXRU6hvtvk-cpwmmspMWqFEqnO",
+    instagram: "https://www.instagram.com/earlesoncrenshaw/",
+    tiktok: "https://www.tiktok.com/@earlesrestaurant",
+  },
+  promo: {
+    label: "ORDER NOW",
+    text: "Use EARLES5 for $5 off total today",
+  },
+};
+
+/* -------------------- Data -------------------- */
+const MENU: MenuItem[] = [
+  // Dogs & Links - Updated with correct pricing from your image
+  { id: "turkey-dog", name: "Turkey Dog", price: 4.99, category: "Dogs & Links" },
+  { id: "beef-dog", name: "Beef Dog (Kosher)", price: 6.49, category: "Dogs & Links", badge: "Kosher" },
+  { id: "beef-jumbo", name: "Beef Jumbo (Kosher)", price: 7.99, category: "Dogs & Links", badge: "Kosher" },
+  { id: "spicy-beef-link", name: "Spicy Beef Link", price: 9.49, category: "Dogs & Links", badge: "Spicy" },
+  { id: "chicken-link", name: "Chicken Link (Pork Casing)", price: 9.49, category: "Dogs & Links" },
+  { id: "vegan-dog", name: "Vegan Dog", price: 7.99, category: "Dogs & Links", badge: "Vegan" },
+  { id: "vegan-link", name: "Vegan Link", price: 9.49, category: "Dogs & Links", badge: "Vegan" },
+  { id: "pastrami-dog", name: "Pastrami Dog", price: 9.99, category: "Dogs & Links" },
+
+  // Burgers & Sandwiches - Updated with new items and pricing
+  { id: "turkey-burger", name: "Turkey Burger", price: 9.99, category: "Burgers & Sandwiches" },
+  { id: "salmon-burger", name: "Salmon Burger", price: 9.99, category: "Burgers & Sandwiches" },
+  { id: "vegan-burger", name: "Vegan Burger", price: 13.99, category: "Burgers & Sandwiches", badge: "Vegan" },
+  { id: "pastrami-burger", name: "Pastrami Burger", price: 9.99, category: "Burgers & Sandwiches" },
+  { id: "double-turkey-burger", name: "Double Turkey Burger", price: 13.99, category: "Burgers & Sandwiches" },
+  { id: "double-salmon-burger", name: "Double Salmon Burger", price: 13.99, category: "Burgers & Sandwiches" },
+  { id: "double-vegan-burger", name: "Double Vegan Burger", price: 13.99, category: "Burgers & Sandwiches", badge: "Vegan" },
+  { id: "just-bun", name: "Just Bun", price: 1.00, category: "Burgers & Sandwiches" },
+
+  { id: "cheese", name: "Cheese (American, Cheddar)", price: 0.75, category: "Sides & Extras" },
+  { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Sides & Extras", badge: "Vegan" },
+  { id: "beef-chili-scoop", name: "Beef Chili Scoop", price: 1.0, category: "Sides & Extras" },
+  { id: "vegan-chili-scoop", name: "Vegan Chili Scoop", price: 2.49, category: "Sides & Extras", badge: "Vegan" },
+
+  { id: "small-cup", name: "Small Cup (Lemonade, Playas Punch)", price: 3.99, category: "Drinks" },
+  { id: "large-cup", name: "Large Cup (Lemonade, Playas Punch)", price: 4.99, category: "Drinks" },
+  { id: "soda-can", name: "Soda Can", price: 2.25, category: "Drinks" },
+];
+
+const CATEGORIES: MenuItem["category"][] = [
+  "Dogs & Links",
+  "Burgers & Sandwiches",
+  "Sides & Extras",
+  "Drinks",
+  "Desserts",
+];
+
+/* -------------------- Helpers -------------------- */
+const money = (n: number) => `$${n.toFixed(2)}`;
+
+function groupByCategory(items: MenuItem[]) {
+  const m = new Map<MenuItem["category"], MenuItem[]>();
+  for (const c of CATEGORIES) m.set(c, []);
+  for (const it of items) m.get(it.category)!.push(it);
+  return m;
 }
 
-.modal-content {
-  background: white;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+/* -------------------- App -------------------- */
+export default function RestaurantApp() {
+  const [category, setCategory] = useState<MenuItem["category"] | "All">("All");
+  const [cart, setCart] = useState<CartLine[]>([]);
+  const [noteFor, setNoteFor] = useState<string | null>(null);
+  const [mode, setMode] = useState<"Pickup" | "Delivery">("Pickup");
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid rgba(0,0,0,0.16);
-  background: #CFB857;
-}
+  const filtered = useMemo(() => {
+    if (category === "All") return MENU;
+    return MENU.filter((m) => m.category === category);
+  }, [category]);
 
-.modal-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0;
-  color: #111111;
-}
+  const grouped = useMemo(() => groupByCategory(filtered), [filtered]);
 
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  color: #111111;
-}
+  const subtotal = cart.reduce((s, l) => s + l.price * l.qty, 0);
+  const taxRate = 0.095;
+  const tax = +(subtotal * taxRate).toFixed(2);
+  const total = +(subtotal + tax).toFixed(2);
 
-.modal-close:hover {
-  background: rgba(0,0,0,0.1);
-}
-
-.modal-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-.option-section {
-  margin-bottom: 24px;
-  border: 1px solid rgba(0,0,0,0.1);
-  border-radius: 12px;
-  padding: 16px;
-  background: #fafafa;
-}
-
-.option-section:last-child {
-  margin-bottom: 0;
-}
-
-.option-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.option-name {
-  font-size: 16px;
-  font-weight: 700;
-  margin: 0;
-  color: #111111;
-}
-
-.option-requirements {
-  display: flex;
-  gap: 8px;
-}
-
-.required-badge {
-  background: #C7372F;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.multi-select-badge {
-  background: #111111;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.max-toppings-badge {
-  background: #2F80ED;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.option-choices {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.choice-label {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid rgba(0,0,0,0.16);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: white;
-}
-
-.choice-label:hover {
-  border-color: #111111;
-  background: #f9f9f9;
-}
-
-.choice-label.selected {
-  border-color: #CFB857;
-  background: rgba(207, 184, 87, 0.1);
-}
-
-.choice-input {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-}
-
-.choice-text {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 500;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.choice-name {
-  flex: 1;
-}
-
-.choice-price {
-  color: #C7372F;
-  font-weight: 600;
-  font-size: 13px;
-  min-width: 60px;
-  text-align: right;
-}
-
-.choice-free {
-  color: #27AE60;
-  font-weight: 600;
-  font-size: 13px;
-  min-width: 60px;
-  text-align: right;
-}
-
-/* Toppings grid layout for free toppings */
-.toppings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 8px;
-}
-
-.topping-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 8px;
-  border: 1px solid rgba(0,0,0,0.16);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: white;
-  text-align: center;
-}
-
-.topping-label:hover {
-  border-color: #111111;
-  background: #f9f9f9;
-}
-
-.topping-label.selected {
-  border-color: #CFB857;
-  background: rgba(207, 184, 87, 0.1);
-}
-
-.topping-abbr {
-  font-size: 12px;
-  font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
-}
-
-.topping-fullname {
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.2;
-}
-
-.topping-free-badge {
-  background: #27AE60;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 600;
-}
-
-/* Selection counter */
-.selection-counter {
-  font-size: 12px;
-  color: #666;
-  margin-top: 8px;
-  text-align: right;
-}
-
-.selection-counter.warning {
-  color: #C7372F;
-  font-weight: 600;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-top: 1px solid rgba(0,0,0,0.16);
-  background: #f9f9f9;
-}
-
-.modal-price {
-  font-size: 20px;
-  font-weight: 700;
-  color: #111111;
-}
-
-.modal-add-btn {
-  background: #C7372F;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  min-height: 44px;
-  min-width: 120px;
-}
-
-.modal-add-btn:hover {
-  background: #a52e27;
-}
-
-.modal-add-btn:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
-}
-
-/* Customizations display in cart */
-.customizations {
-  margin-top: 8px;
-}
-
-.customization-line {
-  font-size: 12px;
-  opacity: 0.8;
-  margin-bottom: 2px;
-  line-height: 1.3;
-}
-
-.customization-line strong {
-  font-weight: 600;
-}
-
-/* Section-specific styling */
-.bread-section {
-  background: rgba(207, 184, 87, 0.05);
-  border-color: #CFB857;
-}
-
-.free-toppings-section {
-  background: rgba(39, 174, 96, 0.05);
-  border-color: #27AE60;
-}
-
-.paid-toppings-section {
-  background: rgba(199, 55, 47, 0.05);
-  border-color: #C7372F;
-}
-
-/* Mobile responsive for modal */
-@media (max-width: 768px) {
-  .modal-overlay {
-    padding: 10px;
+  function addToCart(item: MenuItem) {
+    setCart((c) => {
+      const exists = c.find((l) => l.id === item.id);
+      return exists
+        ? c.map((l) => (l.id === item.id ? { ...l, qty: l.qty + 1 } : l))
+        : [...c, { id: item.id, name: item.name, price: item.price, qty: 1 }];
+    });
   }
-  
-  .modal-content {
-    max-height: 95vh;
+  function removeFromCart(id: string) {
+    setCart((c) => c.filter((l) => l.id !== id));
   }
-  
-  .modal-header,
-  .modal-body,
-  .modal-footer {
-    padding: 16px;
+  function changeQty(id: string, delta: number) {
+    setCart((c) =>
+      c
+        .map((l) => (l.id === id ? { ...l, qty: Math.max(1, l.qty + delta) } : l))
+        .filter((l) => l.qty > 0),
+    );
   }
-  
-  .option-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  function applyNote(id: string, note: string) {
+    setCart((c) => c.map((l) => (l.id === id ? { ...l, note } : l)));
+    setNoteFor(null);
   }
-  
-  .option-requirements {
-    align-self: flex-start;
-  }
-  
-  .toppings-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  }
-  
-  .modal-footer {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-  
-  .modal-price {
-    text-align: center;
-  }
-  
-  .modal-add-btn {
-    width: 100%;
-  }
+
+  return (
+    <div className="app">
+      {/* Header */}
+      <header className="header">
+        <div className="header-top">
+          <div className="header-content">
+            <div className="logo">E</div>
+            <div className="header-text">
+              <h1 className="restaurant-name">{RESTAURANT.name}</h1>
+              <p className="tagline">{RESTAURANT.tagline}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Order Type Bar */}
+        <div className="order-type-bar">
+          <div className="order-type-content">
+            <div className="location-time">
+              <span className="location">PICKUP ASAP • {RESTAURANT.address}</span>
+            </div>
+            <Toggle value={mode} onChange={setMode} options={["Pickup", "Delivery"]} />
+          </div>
+        </div>
+
+        {/* Promo Banner */}
+        <div className="promo-banner">
+          <div className="promo-content">
+            <button className="promo-btn">{RESTAURANT.promo.label}</button>
+            <span className="promo-text">{RESTAURANT.promo.text}</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="main">
+        <div className="container">
+          {/* Categories Navigation */}
+          <nav className="categories-nav">
+            <div className="categories-scroll">
+              {["All", ...CATEGORIES].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat as any)}
+                  className={`category-tab ${category === cat ? 'active' : ''}`}
+                >
+                  {cat}
+                  {cat !== "All" && <span className="item-count"> ({MENU.filter(m => m.category === cat).length})</span>}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          {/* Menu Sections */}
+          <div className="menu-sections">
+            {[...grouped.entries()].map(([cat, items]) =>
+              items.length ? (
+                <section key={cat} className="menu-section">
+                  <h2 className="section-title">{cat}</h2>
+                  <div className="items-grid">
+                    {items.map((item) => (
+                      <div key={item.id} className="menu-item">
+                        <div className="item-content">
+                          <div className="item-info">
+                            <h3 className="item-name">{item.name}</h3>
+                            {item.desc && <p className="item-desc">{item.desc}</p>}
+                            {item.badge && <span className="badge">{item.badge}</span>}
+                          </div>
+                          <div className="item-actions">
+                            <div className="price">{money(item.price)}</div>
+                            <button 
+                              onClick={() => addToCart(item)}
+                              className="add-btn"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : null
+            )}
+          </div>
+        </div>
+
+        {/* Cart Sidebar */}
+        <aside className="cart-sidebar">
+          <div className="cart-card">
+            <h2 className="cart-title">Your Order</h2>
+            {cart.length === 0 ? (
+              <div className="empty-cart">
+                <p>Your cart is empty. Add something tasty!</p>
+              </div>
+            ) : (
+              <div className="cart-content">
+                <div className="cart-items">
+                  {cart.map((item) => (
+                    <div key={item.id} className="cart-item">
+                      <div className="cart-item-main">
+                        <div className="item-details">
+                          <div className="item-name">{item.name}</div>
+                          {item.note && <div className="item-note">Note: {item.note}</div>}
+                        </div>
+                        <div className="item-controls">
+                          <div className="item-price">{money(item.price * item.qty)}</div>
+                          <div className="quantity-controls">
+                            <button onClick={() => changeQty(item.id, -1)} className="qty-btn">−</button>
+                            <span className="qty-display">{item.qty}</span>
+                            <button onClick={() => changeQty(item.id, 1)} className="qty-btn">+</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="item-actions">
+                        <button onClick={() => setNoteFor(item.id)} className="action-btn">
+                          {item.note ? "Edit note" : "Add note"}
+                        </button>
+                        <button onClick={() => removeFromCart(item.id)} className="action-btn remove">
+                          Remove
+                        </button>
+                      </div>
+
+                      {noteFor === item.id && (
+                        <NoteEditor
+                          initial={item.note || ""}
+                          onCancel={() => setNoteFor(null)}
+                          onSave={(val) => applyNote(item.id, val)}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Totals */}
+                <div className="cart-totals">
+                  <div className="total-line">
+                    <span>Subtotal</span>
+                    <span>{money(subtotal)}</span>
+                  </div>
+                  <div className="total-line">
+                    <span>Tax</span>
+                    <span>{money(tax)}</span>
+                  </div>
+                  <div className="total-line final">
+                    <span>Total</span>
+                    <span>{money(total)}</span>
+                  </div>
+                </div>
+
+                {/* Checkout Button */}
+                <div className="checkout-section">
+                  {mode === "Delivery" ? (
+                    <a
+                      href={RESTAURANT.links.uberEats}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="checkout-btn"
+                    >
+                      Continue on Uber Eats
+                    </a>
+                  ) : (
+                    <button className="checkout-btn">
+                      Place Pickup Order
+                    </button>
+                  )}
+                  <p className="checkout-note">
+                    * Online checkout not wired in this demo
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Info Card */}
+          <div className="info-card">
+            <h3 className="info-title">Visit us</h3>
+            <p className="info-address">{RESTAURANT.address}</p>
+            <p className="info-phone">{RESTAURANT.phone}</p>
+            <div className="hours-grid">
+              {RESTAURANT.hours.map((hour) => (
+                <div key={hour.d} className="hour-line">
+                  <span className="day">{hour.d}</span>
+                  <span className="time">{hour.h}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+  );
 }
 
-/* Ensure modal works on very small screens */
-@media (max-width: 480px) {
-  .modal-overlay {
-    padding: 5px;
-  }
-  
-  .choice-label {
-    padding: 10px;
-  }
-  
-  .topping-label {
-    padding: 8px 6px;
-  }
-  
-  .choice-text {
-    font-size: 13px;
-  }
-  
-  .toppings-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  }
-  
-  .topping-fullname {
-    font-size: 11px;
-  }
+/* -------------------- Components -------------------- */
+function Toggle<T extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: readonly T[] | T[];
+}) {
+  return (
+    <div className="toggle">
+      {options.map((opt) => (
+        <button
+          key={String(opt)}
+          onClick={() => onChange(opt as T)}
+          className={`toggle-option ${value === opt ? 'active' : ''}`}
+        >
+          {String(opt)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function NoteEditor({
+  initial,
+  onCancel,
+  onSave,
+}: {
+  initial: string;
+  onCancel: () => void;
+  onSave: (val: string) => void;
+}) {
+  const [val, setVal] = useState(initial);
+  return (
+    <div className="note-editor">
+      <textarea
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        rows={3}
+        placeholder="Add ketchup, extra onions, no pickles…"
+        className="note-input"
+      />
+      <div className="note-actions">
+        <button onClick={() => onSave(val)} className="btn primary">
+          Save note
+        </button>
+        <button onClick={onCancel} className="btn">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
 }
