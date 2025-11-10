@@ -40,7 +40,7 @@ const RESTAURANT = {
   ],
   links: {
     uberEats:
-      "https://www.ubereats.com/store/earles-on-crenshaw/li55HwiTQAWeXlk3hpvg5A?diningMode=DELIVERY&pl=JTdCJTIyYWRkcmVzcyUyMiUzQSUyMjM4NjQlMjBDcmVuc2hhdyUyMEJsdmQlMjIlMkMlMjJyZWZlcmVuY2UlMjIlM0ElMjJiZmFhZGRkMC1jNjdhLWIwMjAtZjk1Mi1iN2IzZGViZmViYjklMjIlMkMlMjJyZWZlcmVuY2VUeXBlJTIyJTNBJTIydWJlcl9wbGFjZXMlMjIlMkMlMjJsYXRpdHVkZSUyMiUzQTM0LjAxNTQzOSUyQyUyMmxvbmdpdHVkZSUyMiUzQS0xMTguMzM0Nzg1JTdE",
+      "https://www.ubereats.com/store/earles-on-crenshaw/li55HwiTQAWeXlk3hpvg5A?diningMode=&pl=JTdCJTIyYWRkcmVzcyUyMiUzQSUyMjM4NjQlMjBDcmVuc2hhdyUyMEJsdmQlMjIlMkMlMjJyZWZlcmVuY2UlMjIlM0ElMjJiZmFhZGRkMC1jNjdhLWIwMjAtZjk1Mi1iN2IzZGViZmViYjklMjIlMkMlMjJyZWZlcmVuY2VUeXBlJTIyJTNBJTIydWJlcl9wbGFjZXMlMjIlMkMlMjJsYXRpdHVkZSUyMiUzQTM0LjAxNTQzOSUyQyUyMmxvbmdpdHVkZSUyMiUzQS0xMTguMzM0Nzg1JTdE",
     doorDash:
       "https://www.doordash.com/store/earle's-los-angeles-260651/81230038/?srsltid=AfmBOooLlowBi9lmHJ_KRnOnuicsoQpXRU6hvtvk-cpwmmspMWqFEqnO",
     instagram: "https://www.instagram.com/earlesoncrenshaw/",
@@ -114,7 +114,7 @@ export default function RestaurantApp() {
   const [category, setCategory] = useState<MenuItem["category"] | "All">("All");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [noteFor, setNoteFor] = useState<string | null>(null);
-  const [mode, setMode] = useState<"Pickup" | "Delivery">("Pickup");
+  const [mode, setMode] = useState<"Pickup" | "">("Pickup");
 
   const filtered = useMemo(() => {
     if (category === "All") return MENU;
@@ -179,7 +179,7 @@ export default function RestaurantApp() {
             <div className="location-time">
               <span className="location">PICKUP ASAP • {RESTAURANT.address}</span>
             </div>
-            <Toggle value={mode} onChange={setMode} options={["Pickup", "Delivery"]} />
+            <Toggle value={mode} onChange={setMode} options={["Pickup", ""]} />
           </div>
         </div>
 
@@ -309,20 +309,10 @@ export default function RestaurantApp() {
                 </div>
 
                 {/* Checkout Button */}
-                <div className="checkout-section">
-                  {mode === "Delivery" ? (
-                    <a
-                      href={RESTAURANT.links.uberEats}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="checkout-btn"
-                    >
-                      Continue on Uber Eats
-                    </a>
-                  ) : (
-                    <button className="checkout-btn">
-                      Place Pickup Order
-                    </button>
+                <button className="checkout-btn">
+  Go to Checkout
+</button>
+
                   )}
                   <p className="checkout-note">
                     * Online checkout not wired in this demo
