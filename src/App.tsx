@@ -150,7 +150,7 @@ export default function RestaurantApp() {
             {/* Updated Logo Section */}
             <div className="logo-container">
               <img 
-                src="/Yellow + Black Logo_Earle_s on Crenshaw.png" 
+                src=""D:\Logos\Yellow + Black Logo_Earle_s on Crenshaw.png"" 
                 alt="Earle's on Crenshaw" 
                 className="logo-image"
               />
