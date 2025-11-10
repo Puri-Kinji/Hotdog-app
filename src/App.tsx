@@ -1,5 +1,3 @@
-// ✅ App.tsx — Original layout restored, Checkout button updated
-
 import { useMemo, useState } from "react";
 import "./index.css";
 import "./App.css";
@@ -109,12 +107,9 @@ function groupByCategory(items: MenuItem[]) {
 
 /* -------------------- App Component -------------------- */
 export default function RestaurantApp() {
-  const [category, setCategory] =
-    useState<MenuItem["category"] | "All">("All");
+  const [category, setCategory] = useState<MenuItem["category"] | "All">("All");
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [showNoteEditor, setShowNoteEditor] =
-    useState<string | null>(null);
-  const [mode, setMode] = useState("Pickup");
+  const [showNoteEditor, setShowNoteEditor] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (category === "All") return MENU;
@@ -268,7 +263,7 @@ export default function RestaurantApp() {
                     <h3>Total: {money(total)}</h3>
                   </div>
 
-                  {/* ✅ NEW CHECKOUT BUTTON */}
+                  {/* Checkout Button */}
                   <button
                     className="checkout-btn"
                     onClick={() => (window.location.href = "/checkout")}
