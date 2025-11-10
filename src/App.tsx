@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import "./index.css";
 import "./App.css";
+import logo from "./assets/Yellow + Black Logo_Earle_s on Crenshaw.png";
+
 
 /* -------------------- Types -------------------- */
 type MenuItem = {
@@ -149,11 +151,12 @@ export default function RestaurantApp() {
           <div className="header-content">
             {/* Updated Logo Section */}
             <div className="logo-container">
-              <img 
-                src=""D:\Logos\Yellow + Black Logo_Earle_s on Crenshaw.png"" 
-                alt="Earle's on Crenshaw" 
-                className="logo-image"
-              />
+             <img 
+  src={logo}
+  alt="Earle's on Crenshaw" 
+  className="logo-image"
+/>
+
             </div>
             <div className="header-text">
               <h1 className="restaurant-name">{RESTAURANT.name}</h1>
