@@ -89,18 +89,19 @@ html {
   gap: 16px;
 }
 
-.logo {
-  width: 44px;
-  height: 44px;
-  background: #111111;
-  color: white;
-  border-radius: 12px;
+/* Logo Styles */
+.logo-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 18px;
   flex-shrink: 0;
+}
+
+.logo-image {
+  height: 50px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
 }
 
 .header-text {
@@ -641,6 +642,22 @@ html {
   .hours-grid {
     grid-template-columns: 1fr;
   }
+  
+  /* Mobile logo adjustments */
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .logo-image {
+    height: 45px;
+    max-width: 180px;
+  }
+  
+  .header-text {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -657,6 +674,12 @@ html {
   
   .add-btn {
     min-width: 80px;
+  }
+  
+  /* Small screen logo adjustments */
+  .logo-image {
+    height: 40px;
+    max-width: 160px;
   }
 }
 /* ====== Customization Modal ====== */
