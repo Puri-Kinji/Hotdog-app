@@ -18,7 +18,6 @@ type CartLine = {
   name: string;
   price: number;
   qty: number;
-  note?: string;
 };
 
 /* -------------------- Config -------------------- */
@@ -35,10 +34,10 @@ const RESTAURANT = {
     { d: "Fri", h: "11:00 AM – 9:00 PM" },
     { d: "Sat", h: "11:00 AM – 9:00 PM" },
     { d: "Sun", h: "Closed" },
-  ]
+  ],
 };
 
-/* -------------------- Menu Items -------------------- */
+/* -------------------- Menu Data -------------------- */
 const MENU: MenuItem[] = [
   // Dogs & Links
   { id: "turkey-dog", name: "Turkey Dog", price: 4.99, category: "Dogs & Links" },
@@ -81,11 +80,10 @@ const CATEGORIES: MenuItem["category"][] = [
 
 const money = (n: number) => `$${n.toFixed(2)}`;
 
-/* -------------------- APP -------------------- */
-export default function RestaurantApp() {
+/* -------------------- App -------------------- */
+export default function App() {
   const [category, setCategory] = useState<MenuItem["category"] | "All">("All");
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [noteFor, setNoteFor] = useState<string | null>(null);
   const [page, setPage] = useState<"menu" | "checkout">("menu");
 
   const filtered = useMemo(
@@ -94,10 +92,10 @@ export default function RestaurantApp() {
   );
 
   const grouped = useMemo(() => {
-    const grouped = new Map<MenuItem["category"], MenuItem[]>();
-    CATEGORIES.forEach((cat) => grouped.set(cat, []));
-    filtered.forEach((i) => grouped.get(i.category)!.push(i));
-    return grouped;
+    const m = new Map<MenuItem["category"], MenuItem[]>();
+    CATEGORIES.forEach((c) => m.set(c, []));
+    filtered.forEach((i) => m.get(i.category)!.push(i));
+    return m;
   }, [filtered]);
 
   const subtotal = cart.reduce((s, l) => s + l.price * l.qty, 0);
@@ -112,16 +110,15 @@ export default function RestaurantApp() {
     );
   }
 
-  function CheckoutPage() {
+  /* -------- Checkout Page -------- */
+  if (page === "checkout") {
     return (
       <div className="checkout-screen">
         <h1>Checkout</h1>
-        <p>Review your order below.</p>
 
         {cart.map((item) => (
           <div key={item.id} className="checkout-line">
-            <span>{item.qty}× {item.name}</span>
-            <span>{money(item.price * item.qty)}</span>
+            {item.qty}× {item.name} — {money(item.qty * item.price)}
           </div>
         ))}
 
@@ -137,9 +134,7 @@ export default function RestaurantApp() {
     );
   }
 
-  /* ----------- DISPLAY CHECKOUT OR MENU ----------- */
-  if (page === "checkout") return <CheckoutPage />;
-
+  /* -------- Menu Page -------- */
   return (
     <div className="app">
       <header className="header">
@@ -155,7 +150,6 @@ export default function RestaurantApp() {
         ))}
       </nav>
 
-      {/* Menu view */}
       <main className="menu">
         {[...grouped.entries()].map(([cat, items]) =>
           items.length ? (
@@ -173,10 +167,8 @@ export default function RestaurantApp() {
         )}
       </main>
 
-      {/* Sidebar Cart */}
       <aside className="sidebar">
         <h3>Your Order</h3>
-
         {cart.map((item) => (
           <div key={item.id}>
             {item.qty}× {item.name}
