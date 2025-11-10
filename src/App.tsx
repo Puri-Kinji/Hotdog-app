@@ -46,10 +46,6 @@ const RESTAURANT = {
     instagram: "https://www.instagram.com/earlesoncrenshaw/",
     tiktok: "https://www.tiktok.com/@earlesrestaurant",
   },
-  promo: {
-    label: "ORDER NOW",
-    text: "Use EARLES5 for $5 off total today",
-  },
 };
 
 /* -------------------- Data -------------------- */
@@ -71,8 +67,7 @@ const MENU: MenuItem[] = [
   { id: "pastrami-burger", name: "Pastrami Burger", price: 9.99, category: "Burgers & Sandwiches" },
   { id: "double-turkey-burger", name: "Double Turkey Burger", price: 13.99, category: "Burgers & Sandwiches" },
   { id: "double-salmon-burger", name: "Double Salmon Burger", price: 13.99, category: "Burgers & Sandwiches" },
-  { id: "double-vegan-burger", name: "Double Vegan Burger", price: 13.99, category: "Burgers & Sandwiches", badge: "Vegan" },
-  { id: "just-bun", name: "Just Bun", price: 1.00, category: "Burgers & Sandwiches" },
+  { id: "double-vegan-burger", name: "Double Vegan Burger", price: 16.99, category: "Burgers & Sandwiches", badge: "Vegan" },
 
   { id: "cheese", name: "Cheese (American, Cheddar)", price: 0.75, category: "Sides & Extras" },
   { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Sides & Extras", badge: "Vegan" },
