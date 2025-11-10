@@ -8,12 +8,7 @@ type MenuItem = {
   id: string;
   name: string;
   price: number;
-  category:
-    | "Dogs & Links"
-    | "Burgers & Sandwiches"
-    | "Sides & Extras"
-    | "Drinks"
-    | "Desserts";
+  category: "Dogs & Links" | "Burgers & Sandwiches" | "Sides & Extras" | "Drinks" | "Desserts";
   desc?: string;
   badge?: "Vegan" | "Spicy" | "Kosher" | "New" | "Popular";
 };
@@ -43,7 +38,7 @@ const RESTAURANT = {
   ],
 };
 
-/* -------------------- Menu Data -------------------- */
+/* -------------------- Data -------------------- */
 const MENU: MenuItem[] = [
   // Dogs & Links
   { id: "turkey-dog", name: "Turkey Dog", price: 4.99, category: "Dogs & Links" },
@@ -75,7 +70,7 @@ const MENU: MenuItem[] = [
   { id: "large-cup", name: "Large Cup (Lemonade, Playas Punch)", price: 4.99, category: "Drinks" },
   { id: "soda-can", name: "Soda Can", price: 2.25, category: "Drinks" },
 
-  // ✅ Desserts Added
+  // Desserts
   { id: "cakes", name: "Cakes", price: 8.49, category: "Desserts" },
   { id: "vegan-cakes", name: "Vegan Cakes", price: 7.49, category: "Desserts", badge: "Vegan" },
   { id: "cheese-cake", name: "Cheese Cake", price: 7.99, category: "Desserts" },
@@ -87,7 +82,6 @@ const MENU: MenuItem[] = [
   { id: "sweet-potato-pie", name: "Sweet Potato Pie", price: 4.99, category: "Desserts" },
 ];
 
-/* -------------------- Helpers -------------------- */
 const CATEGORIES: MenuItem["category"][] = [
   "Dogs & Links",
   "Burgers & Sandwiches",
@@ -96,6 +90,7 @@ const CATEGORIES: MenuItem["category"][] = [
   "Desserts",
 ];
 
+/* -------------------- Helpers -------------------- */
 const money = (n: number) => `$${n.toFixed(2)}`;
 
 function groupByCategory(items: MenuItem[]) {
@@ -105,11 +100,11 @@ function groupByCategory(items: MenuItem[]) {
   return m;
 }
 
-/* -------------------- App Component -------------------- */
+/* -------------------- App -------------------- */
 export default function RestaurantApp() {
   const [category, setCategory] = useState<MenuItem["category"] | "All">("All");
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [showNoteEditor, setShowNoteEditor] = useState<string | null>(null);
+  const [noteFor, setNoteFor] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (category === "All") return MENU;
@@ -119,16 +114,15 @@ export default function RestaurantApp() {
   const grouped = useMemo(() => groupByCategory(filtered), [filtered]);
 
   const subtotal = cart.reduce((s, l) => s + l.price * l.qty, 0);
-  const tax = +(subtotal * 0.095).toFixed(2);
+  const taxRate = 0.095;
+  const tax = +(subtotal * taxRate).toFixed(2);
   const total = +(subtotal + tax).toFixed(2);
 
   function addToCart(item: MenuItem) {
     setCart((c) => {
       const exists = c.find((l) => l.id === item.id);
       return exists
-        ? c.map((l) =>
-            l.id === item.id ? { ...l, qty: l.qty + 1 } : l
-          )
+        ? c.map((l) => (l.id === item.id ? { ...l, qty: l.qty + 1 } : l))
         : [...c, { id: item.id, name: item.name, price: item.price, qty: 1 }];
     });
   }
@@ -140,18 +134,14 @@ export default function RestaurantApp() {
   function changeQty(id: string, delta: number) {
     setCart((c) =>
       c
-        .map((l) =>
-          l.id === id ? { ...l, qty: Math.max(1, l.qty + delta) } : l
-        )
+        .map((l) => (l.id === id ? { ...l, qty: Math.max(1, l.qty + delta) } : l))
         .filter((l) => l.qty > 0)
     );
   }
 
   function applyNote(id: string, note: string) {
-    setCart((c) =>
-      c.map((l) => (l.id === id ? { ...l, note } : l))
-    );
-    setShowNoteEditor(null);
+    setCart((c) => c.map((l) => (l.id === id ? { ...l, note } : l)));
+    setNoteFor(null);
   }
 
   return (
@@ -160,7 +150,9 @@ export default function RestaurantApp() {
       <header className="header">
         <div className="header-top">
           <div className="header-content">
-            <img src={logo} alt="Earle's on Crenshaw" className="logo-image" />
+            <div className="logo-container">
+              <img src={logo} alt="Earle's on Crenshaw" className="logo-image" />
+            </div>
             <div className="header-text">
               <h1 className="restaurant-name">{RESTAURANT.name}</h1>
               <p className="tagline">{RESTAURANT.tagline}</p>
@@ -169,23 +161,26 @@ export default function RestaurantApp() {
         </div>
       </header>
 
-      {/* Main Layout */}
+      {/* Main Content */}
       <main className="main">
-        {/* Category Tabs */}
-        <nav className="categories-nav">
-          {["All", ...CATEGORIES].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategory(cat as any)}
-              className={`category-tab ${category === cat ? "active" : ""}`}
-            >
-              {cat}
-            </button>
-          ))}
-        </nav>
+        <div className="container">
+          {/* Categories Navigation */}
+          <nav className="categories-nav">
+            <div className="categories-scroll">
+              {["All", ...CATEGORIES].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat as any)}
+                  className={`category-tab ${category === cat ? 'active' : ''}`}
+                >
+                  {cat}
+                  {cat !== "All" && <span className="item-count"> ({MENU.filter(m => m.category === cat).length})</span>}
+                </button>
+              ))}
+            </div>
+          </nav>
 
-        <div className="menu-and-cart">
-          {/* Menu */}
+          {/* Menu Sections */}
           <div className="menu-sections">
             {[...grouped.entries()].map(([cat, items]) =>
               items.length ? (
@@ -197,11 +192,12 @@ export default function RestaurantApp() {
                         <div className="item-content">
                           <div className="item-info">
                             <h3 className="item-name">{item.name}</h3>
+                            {item.desc && <p className="item-desc">{item.desc}</p>}
                             {item.badge && <span className="badge">{item.badge}</span>}
                           </div>
                           <div className="item-actions">
                             <div className="price">{money(item.price)}</div>
-                            <button
+                            <button 
                               onClick={() => addToCart(item)}
                               className="add-btn"
                             >
@@ -216,71 +212,105 @@ export default function RestaurantApp() {
               ) : null
             )}
           </div>
+        </div>
 
-          {/* Cart */}
-          <aside className="cart-sidebar">
-            <div className="cart-card">
-              <h2 className="cart-title">Your Order</h2>
-
-              {cart.length === 0 ? (
-                <p>Your cart is empty.</p>
-              ) : (
-                <>
+        {/* Cart Sidebar */}
+        <aside className="cart-sidebar">
+          <div className="cart-card">
+            <h2 className="cart-title">Your Order</h2>
+            {cart.length === 0 ? (
+              <div className="empty-cart">
+                <p>Your cart is empty. Add something tasty!</p>
+              </div>
+            ) : (
+              <div className="cart-content">
+                <div className="cart-items">
                   {cart.map((item) => (
                     <div key={item.id} className="cart-item">
-                      <div className="item-details">
-                        <p className="item-name">{item.name}</p>
-                        {item.note && <p className="item-note">Note: {item.note}</p>}
+                      <div className="cart-item-main">
+                        <div className="item-details">
+                          <div className="item-name">{item.name}</div>
+                          {item.note && <div className="item-note">Note: {item.note}</div>}
+                        </div>
+                        <div className="item-controls">
+                          <div className="item-price">{money(item.price * item.qty)}</div>
+                          <div className="quantity-controls">
+                            <button onClick={() => changeQty(item.id, -1)} className="qty-btn">−</button>
+                            <span className="qty-display">{item.qty}</span>
+                            <button onClick={() => changeQty(item.id, 1)} className="qty-btn">+</button>
+                          </div>
+                        </div>
                       </div>
-
-                      <div className="item-controls">
-                        <button onClick={() => changeQty(item.id, -1)}>-</button>
-                        <span>{item.qty}</span>
-                        <button onClick={() => changeQty(item.id, 1)}>+</button>
-                        <button className="remove-btn" onClick={() => removeFromCart(item.id)}>
+                      <div className="cart-item-actions">
+                        <button onClick={() => setNoteFor(item.id)} className="action-btn">
+                          {item.note ? "Edit note" : "Add note"}
+                        </button>
+                        <button onClick={() => removeFromCart(item.id)} className="action-btn remove">
                           Remove
                         </button>
                       </div>
 
-                      <button onClick={() => setShowNoteEditor(item.id)}>
-                        {item.note ? "Edit note" : "Add note"}
-                      </button>
-
-                      {showNoteEditor === item.id && (
+                      {noteFor === item.id && (
                         <NoteEditor
                           initial={item.note || ""}
-                          onCancel={() => setShowNoteEditor(null)}
+                          onCancel={() => setNoteFor(null)}
                           onSave={(val) => applyNote(item.id, val)}
                         />
                       )}
                     </div>
                   ))}
+                </div>
 
-                  {/* Totals */}
-                  <div className="cart-totals">
-                    <p>Subtotal: {money(subtotal)}</p>
-                    <p>Tax: {money(tax)}</p>
-                    <h3>Total: {money(total)}</h3>
+                {/* Totals */}
+                <div className="cart-totals">
+                  <div className="total-line">
+                    <span>Subtotal</span>
+                    <span>{money(subtotal)}</span>
                   </div>
+                  <div className="total-line">
+                    <span>Tax</span>
+                    <span>{money(tax)}</span>
+                  </div>
+                  <div className="total-line final">
+                    <span>Total</span>
+                    <span>{money(total)}</span>
+                  </div>
+                </div>
 
-                  {/* Checkout Button */}
-                  <button
-                    className="checkout-btn"
-                    onClick={() => (window.location.href = "/checkout")}
-                  >
-                    Go to Checkout
+                {/* Checkout Button */}
+                <div className="checkout-section">
+                  <button className="checkout-btn">
+                    Place Pickup Order
                   </button>
-                </>
-              )}
+                  <p className="checkout-note">
+                    * Online checkout not wired in this demo
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Info Card */}
+          <div className="info-card">
+            <h3 className="info-title">Visit us</h3>
+            <p className="info-address">{RESTAURANT.address}</p>
+            <p className="info-phone">{RESTAURANT.phone}</p>
+            <div className="hours-grid">
+              {RESTAURANT.hours.map((hour) => (
+                <div key={hour.d} className="hour-line">
+                  <span className="day">{hour.d}</span>
+                  <span className="time">{hour.h}</span>
+                </div>
+              ))}
             </div>
-          </aside>
-        </div>
+          </div>
+        </aside>
       </main>
     </div>
   );
 }
 
-/* -------------------- Note Editor Component -------------------- */
+/* -------------------- Components -------------------- */
 function NoteEditor({
   initial,
   onCancel,
@@ -298,9 +328,16 @@ function NoteEditor({
         onChange={(e) => setVal(e.target.value)}
         rows={3}
         placeholder="Add ketchup, extra onions, no pickles…"
+        className="note-input"
       />
-      <button onClick={() => onSave(val)}>Save</button>
-      <button onClick={onCancel}>Cancel</button>
+      <div className="note-actions">
+        <button onClick={() => onSave(val)} className="btn primary">
+          Save note
+        </button>
+        <button onClick={onCancel} className="btn">
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }
