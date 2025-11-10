@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import "./index.css";
 import "./App.css";
+import logo from "./assets/Yellow + Black Logo_Earle_s on Crenshaw.png";
+
 
 
 /* -------------------- Types -------------------- */
