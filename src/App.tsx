@@ -82,6 +82,18 @@ const MENU: MenuItem[] = [
   { id: "small-cup", name: "Small Cup (Lemonade, Playas Punch)", price: 3.99, category: "Drinks" },
   { id: "large-cup", name: "Large Cup (Lemonade, Playas Punch)", price: 4.99, category: "Drinks" },
   { id: "soda-can", name: "Soda Can", price: 2.25, category: "Drinks" },
+
+    // Desserts
+  { id: "cakes", name: "Cakes", price: 8.49, category: "Desserts" },
+  { id: "vegan-cakes", name: "Vegan Cakes", price: 7.49, category: "Desserts", badge: "Vegan" },
+  { id: "cheese-cake", name: "Cheese Cake", price: 7.99, category: "Desserts" },
+  { id: "cobbler", name: "Cobbler", price: 4.99, category: "Desserts" },
+  { id: "coffee-cake", name: "Coffee Cake", price: 4.99, category: "Desserts" },
+  { id: "banana-pudding", name: "Banana Pudding", price: 6.99, category: "Desserts" },
+  { id: "pecan-pie", name: "Pecan Pie", price: 4.99, category: "Desserts" },
+  { id: "bean-pie", name: "Bean Pie", price: 4.99, category: "Desserts" },
+  { id: "sweet-potato-pie", name: "Sweet Potato Pie", price: 4.99, category: "Desserts" },
+
 ];
 
 const CATEGORIES: MenuItem["category"][] = [
