@@ -147,7 +147,14 @@ export default function RestaurantApp() {
       <header className="header">
         <div className="header-top">
           <div className="header-content">
-            <div className="logo">E</div>
+            {/* Updated Logo Section */}
+            <div className="logo-container">
+              <img 
+                src="/Yellow + Black Logo_Earle_s on Crenshaw.png" 
+                alt="Earle's on Crenshaw" 
+                className="logo-image"
+              />
+            </div>
             <div className="header-text">
               <h1 className="restaurant-name">{RESTAURANT.name}</h1>
               <p className="tagline">{RESTAURANT.tagline}</p>
