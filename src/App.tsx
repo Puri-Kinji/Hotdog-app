@@ -354,3 +354,63 @@ function NoteEditor({
     </div>
   );
 }
+/* =========================================================
+   MENU LIST ITEM + ADD BUTTONS
+========================================================= */
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.menu-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.price {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.add-btn {
+  background: #C7372F;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.add-btn:hover {
+  background: #9E2C26;
+  transform: translateY(-2px);
+}
+
+.badge {
+  background: #C7372F;
+  color: white;
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  width: fit-content;
+}
