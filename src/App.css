@@ -1,18 +1,129 @@
-.menu-item {
-  background: white;              /* back to original */
-  border-radius: 16px;
-  border: 1px solid rgba(0,0,0,0.16);
-  padding: 20px;
-  color: #111;                    /* default text */
+/* =========================================================
+   BASE / GLOBAL
+========================================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.menu-item .item-name,
-.menu-item .item-desc {
-  color: #111;                    /* ensure text stays dark */
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #CFB857; /* Earle's gold */
+  color: #111;
+  line-height: 1.4;
 }
 
-/* badges return to original styling */
-.badge {
-  background: #111111;
-  color: white;
+.app {
+  min-height: 100vh;
+  background: #CFB857;
 }
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+.main {
+  display: flex;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+}
+
+.container {
+  flex: 1;
+  max-width: 800px;
+}
+
+/* Cart sidebar */
+.cart-sidebar {
+  width: 360px;
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .main {
+    flex-direction: column;
+    padding: 0 0 40px;
+  }
+  .cart-sidebar {
+    width: 100%;
+    position: static;
+    order: -1;
+  }
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+.header {
+  background: #CFB857;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.16);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding-top: env(safe-area-inset-top);
+}
+
+.header-top {
+  padding: 16px 20px 12px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo-image {
+  height: 50px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+}
+
+.restaurant-name {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.tagline {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* =========================================================
+   CATEGORY TABS
+========================================================= */
+.categories-nav {
+  background: #CFB857;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.16);
+  position: sticky;
+  top: 138px;
+  z-index: 90;
+  margin: 0 -16px;
+  padding: 0 16px;
+}
+
+.categories-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 16px 0;
+}
+
+.categories-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.category-tab {
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: white;
+  border: 2p
