@@ -1,87 +1,18 @@
-/* ====== MENU ITEM (Red background) ====== */
 .menu-item {
-  background: #C7372F; /* Earles Red */
+  background: white;              /* back to original */
   border-radius: 16px;
   border: 1px solid rgba(0,0,0,0.16);
   padding: 20px;
-  color: white;
+  color: #111;                    /* default text */
 }
 
 .menu-item .item-name,
 .menu-item .item-desc {
-  color: white;
+  color: #111;                    /* ensure text stays dark */
 }
 
-/* Badge flips (white background + red text) */
+/* badges return to original styling */
 .badge {
-  display: inline-block;
-  background: white;
-  color: #C7372F;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-/* ====== ADD BUTTON (White) ====== */
-.add-btn {
-  background: white !important;
-  color: #C7372F !important;
-  border: 2px solid #C7372F;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  min-height: 40px;
-  min-width: 60px;
-  transition: 0.2s;
-}
-
-.add-btn:hover {
-  background: #C7372F !important;
-  color: white !important;
-}
-
-/* ====== CATEGORY TABS (Match red/white swap) ====== */
-.category-tab {
-  padding: 12px 20px;
-  background: white;
-  border: 2px solid #C7372F;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  flex-shrink: 0;
-  min-height: 44px;
-  transition: all 0.2s;
-  color: #C7372F;
-}
-
-.category-tab.active {
-  background: #C7372F;
+  background: #111111;
   color: white;
-  border-color: #C7372F;
-}
-
-/* ====== CHECKOUT BUTTON (matches Add button) ====== */
-.checkout-btn {
-  width: 100%;
-  background: white !important;
-  color: #C7372F !important;
-  border: 2px solid #C7372F;
-  padding: 16px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  min-height: 52px;
-  transition: 0.2s;
-}
-
-.checkout-btn:hover {
-  background: #C7372F !important;
-  color: white !important;
 }
