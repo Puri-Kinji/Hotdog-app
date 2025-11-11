@@ -353,8 +353,3 @@ function NoteEditor({
       </div>
     </div>
   );
-}
-
-  border-radius: 6px;
-  width: fit-content;
-}
