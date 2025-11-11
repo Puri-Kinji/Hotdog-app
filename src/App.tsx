@@ -3,12 +3,17 @@ import "./index.css";
 import "./App.css";
 import logo from "./assets/Yellow + Black Logo_Earle_s on Crenshaw.png";
 
-/* -------------------- Types -------------------- */
+/* ---------------------------------- Types ---------------------------------- */
 type MenuItem = {
   id: string;
   name: string;
   price: number;
-  category: "Dogs & Links" | "Burgers & Sandwiches" | "Sides & Extras" | "Drinks" | "Desserts";
+  category:
+    | "Dogs & Links"
+    | "Burgers & Sandwiches"
+    | "Sides & Extras"
+    | "Drinks"
+    | "Desserts";
   desc?: string;
   badge?: "Vegan" | "Spicy" | "Kosher" | "New" | "Popular";
 };
@@ -21,7 +26,7 @@ type CartLine = {
   note?: string;
 };
 
-/* -------------------- Config -------------------- */
+/* -------------------------------- Restaurant Info ------------------------------- */
 const RESTAURANT = {
   name: "Earle's on Crenshaw",
   tagline: "Save time by ordering online!",
@@ -38,7 +43,7 @@ const RESTAURANT = {
   ],
 };
 
-/* -------------------- Data -------------------- */
+/* ---------------------------------- Menu Data ---------------------------------- */
 const MENU: MenuItem[] = [
   // Dogs & Links
   { id: "turkey-dog", name: "Turkey Dog", price: 4.99, category: "Dogs & Links" },
@@ -90,7 +95,7 @@ const CATEGORIES: MenuItem["category"][] = [
   "Desserts",
 ];
 
-/* -------------------- Helpers -------------------- */
+/* ---------------------------------- Utilities --------------------------------- */
 const money = (n: number) => `$${n.toFixed(2)}`;
 
 function groupByCategory(items: MenuItem[]) {
@@ -100,22 +105,22 @@ function groupByCategory(items: MenuItem[]) {
   return m;
 }
 
-/* -------------------- App -------------------- */
+/* ---------------------------------- App ---------------------------------- */
 export default function RestaurantApp() {
-  const [category, setCategory] = useState<MenuItem["category"] | "All">("All");
+  const [category, setCategory] =
+    useState<MenuItem["category"] | "All">("All");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [noteFor, setNoteFor] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    if (category === "All") return MENU;
-    return MENU.filter((m) => m.category === category);
-  }, [category]);
+  const filtered = useMemo(
+    () => (category === "All" ? MENU : MENU.filter((m) => m.category === category)),
+    [category]
+  );
 
   const grouped = useMemo(() => groupByCategory(filtered), [filtered]);
 
   const subtotal = cart.reduce((s, l) => s + l.price * l.qty, 0);
-  const taxRate = 0.095;
-  const tax = +(subtotal * taxRate).toFixed(2);
+  const tax = +(subtotal * 0.095).toFixed(2);
   const total = +(subtotal + tax).toFixed(2);
 
   function addToCart(item: MenuItem) {
@@ -146,13 +151,12 @@ export default function RestaurantApp() {
 
   return (
     <div className="app">
+
       {/* Header */}
       <header className="header">
         <div className="header-top">
           <div className="header-content">
-            <div className="logo-container">
-              <img src={logo} alt="Earle's on Crenshaw" className="logo-image" />
-            </div>
+            <img src={logo} alt="Earle's on Crenshaw" className="logo-image" />
             <div className="header-text">
               <h1 className="restaurant-name">{RESTAURANT.name}</h1>
               <p className="tagline">{RESTAURANT.tagline}</p>
@@ -161,43 +165,49 @@ export default function RestaurantApp() {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="main">
         <div className="container">
-          {/* Categories Navigation */}
+
+          {/* Category Nav */}
           <nav className="categories-nav">
             <div className="categories-scroll">
               {["All", ...CATEGORIES].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setCategory(cat as any)}
-                  className={`category-tab ${category === cat ? 'active' : ''}`}
+                  className={`category-tab ${category === cat ? "active" : ""}`}
                 >
                   {cat}
-                  {cat !== "All" && <span className="item-count"> ({MENU.filter(m => m.category === cat).length})</span>}
+                  {cat !== "All" && (
+                    <span className="item-count">
+                      ({MENU.filter((m) => m.category === cat).length})
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
           </nav>
 
-          {/* Menu Sections */}
+          {/* Menu */}
           <div className="menu-sections">
             {[...grouped.entries()].map(([cat, items]) =>
               items.length ? (
                 <section key={cat} className="menu-section">
                   <h2 className="section-title">{cat}</h2>
+
                   <div className="items-grid">
                     {items.map((item) => (
                       <div key={item.id} className="menu-item">
                         <div className="item-content">
                           <div className="item-info">
                             <h3 className="item-name">{item.name}</h3>
-                            {item.desc && <p className="item-desc">{item.desc}</p>}
                             {item.badge && <span className="badge">{item.badge}</span>}
                           </div>
+
                           <div className="item-actions">
                             <div className="price">{money(item.price)}</div>
-                            <button 
+                            <button
                               onClick={() => addToCart(item)}
                               className="add-btn"
                             >
@@ -214,10 +224,11 @@ export default function RestaurantApp() {
           </div>
         </div>
 
-        {/* Cart Sidebar */}
+        {/* Cart */}
         <aside className="cart-sidebar">
           <div className="cart-card">
             <h2 className="cart-title">Your Order</h2>
+
             {cart.length === 0 ? (
               <div className="empty-cart">
                 <p>Your cart is empty. Add something tasty!</p>
@@ -232,15 +243,22 @@ export default function RestaurantApp() {
                           <div className="item-name">{item.name}</div>
                           {item.note && <div className="item-note">Note: {item.note}</div>}
                         </div>
+
                         <div className="item-controls">
                           <div className="item-price">{money(item.price * item.qty)}</div>
+
                           <div className="quantity-controls">
-                            <button onClick={() => changeQty(item.id, -1)} className="qty-btn">−</button>
+                            <button onClick={() => changeQty(item.id, -1)} className="qty-btn">
+                              −
+                            </button>
                             <span className="qty-display">{item.qty}</span>
-                            <button onClick={() => changeQty(item.id, 1)} className="qty-btn">+</button>
+                            <button onClick={() => changeQty(item.id, 1)} className="qty-btn">
+                              +
+                            </button>
                           </div>
                         </div>
                       </div>
+
                       <div className="cart-item-actions">
                         <button onClick={() => setNoteFor(item.id)} className="action-btn">
                           {item.note ? "Edit note" : "Add note"}
@@ -261,7 +279,6 @@ export default function RestaurantApp() {
                   ))}
                 </div>
 
-                {/* Totals */}
                 <div className="cart-totals">
                   <div className="total-line">
                     <span>Subtotal</span>
@@ -277,14 +294,9 @@ export default function RestaurantApp() {
                   </div>
                 </div>
 
-                {/* Checkout Button */}
                 <div className="checkout-section">
-                  <button className="checkout-btn">
-                    Place Pickup Order
-                  </button>
-                  <p className="checkout-note">
-                    * Online checkout not wired in this demo
-                  </p>
+                  <button className="checkout-btn">Place Pickup Order</button>
+                  <p className="checkout-note">* Online checkout not wired in this demo</p>
                 </div>
               </div>
             )}
@@ -295,6 +307,7 @@ export default function RestaurantApp() {
             <h3 className="info-title">Visit us</h3>
             <p className="info-address">{RESTAURANT.address}</p>
             <p className="info-phone">{RESTAURANT.phone}</p>
+
             <div className="hours-grid">
               {RESTAURANT.hours.map((hour) => (
                 <div key={hour.d} className="hour-line">
@@ -310,7 +323,7 @@ export default function RestaurantApp() {
   );
 }
 
-/* -------------------- Components -------------------- */
+/* -------------------------------- Note Editor Component ------------------------------- */
 function NoteEditor({
   initial,
   onCancel,
