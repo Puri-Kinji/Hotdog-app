@@ -126,4 +126,16 @@ body {
   padding: 12px 20px;
   border-radius: 12px;
   background: white;
-  border: 2p
+  border: 2px solid #C7372F;   /* ✅ fixed */
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #C7372F;
+  transition: 0.2s;
+}
+
+.category-tab.active {
+  background: #C7372F;
+  color: white;
+  border-color: #C7372F;
+}
