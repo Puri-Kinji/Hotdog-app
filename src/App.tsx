@@ -33,13 +33,13 @@ const RESTAURANT = {
   address: "3864 Crenshaw BLVD",
   phone: "(323) 299-2867",
   hours: [
-    { d: "Mon", h: "11:00 AM – 9:00 PM" },
-    { d: "Tue", h: "11:00 AM – 9:00 PM" },
-    { d: "Wed", h: "11:00 AM – 9:00 PM" },
-    { d: "Thu", h: "11:00 AM – 9:00 PM" },
-    { d: "Fri", h: "11:00 AM – 9:00 PM" },
-    { d: "Sat", h: "11:00 AM – 9:00 PM" },
-    { d: "Sun", h: "Closed" },
+    { d: "Sunday", h: "Closed" },
+    { d: "Monday", h: "11:00 AM – 9:00 PM" },
+    { d: "Tuesday", h: "11:00 AM – 9:00 PM" },
+    { d: "Wednesday", h: "11:00 AM – 9:00 PM" },
+    { d: "Thursday", h: "11:00 AM – 9:00 PM" },
+    { d: "Friday", h: "11:00 AM – 9:00 PM" },
+    { d: "Saturday", h: "11:00 AM – 9:00 PM" },
   ],
 };
 
@@ -105,6 +105,18 @@ function groupByCategory(items: MenuItem[]) {
   return m;
 }
 
+// Get current day and hours
+function getCurrentDayInfo() {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const currentDay = days[today];
+  const todayHours = RESTAURANT.hours.find(hour => hour.d === currentDay);
+  return {
+    day: currentDay,
+    hours: todayHours ? todayHours.h : "Closed"
+  };
+}
+
 /* ---------------------------------- App ---------------------------------- */
 export default function RestaurantApp() {
   const [category, setCategory] =
@@ -125,6 +137,7 @@ export default function RestaurantApp() {
   const total = +(subtotal + tax).toFixed(2);
 
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+  const { day, hours } = getCurrentDayInfo();
 
   function addToCart(item: MenuItem) {
     setCart((c) => {
@@ -164,9 +177,23 @@ export default function RestaurantApp() {
         <div className="header-top">
           <div className="header-content">
             <img src={logo} alt="Earle's on Crenshaw" className="logo-image" />
-            <div className="header-text">
-              <h1 className="restaurant-name">{RESTAURANT.name}</h1>
-              <p className="tagline">{RESTAURANT.tagline}</p>
+            
+            <div className="header-main-info">
+              <div className="restaurant-info">
+                <h1 className="restaurant-name">{RESTAURANT.name}</h1>
+                <p className="tagline">{RESTAURANT.tagline}</p>
+              </div>
+              
+              <div className="header-details">
+                <div className="hours-info">
+                  <span className="current-day">{day}:</span>
+                  <span className="current-hours">{hours}</span>
+                </div>
+                <div className="contact-info">
+                  <span className="address">{RESTAURANT.address}</span>
+                  <span className="phone">{RESTAURANT.phone}</span>
+                </div>
+              </div>
             </div>
             
             {/* Cart Icon */}
@@ -323,22 +350,6 @@ export default function RestaurantApp() {
                     </div>
                   </div>
                 )}
-              </div>
-
-              {/* Info Card Bubble */}
-              <div className="info-card">
-                <h3 className="info-title">Visit us</h3>
-                <p className="info-address">{RESTAURANT.address}</p>
-                <p className="info-phone">{RESTAURANT.phone}</p>
-
-                <div className="hours-grid">
-                  {RESTAURANT.hours.map((hour) => (
-                    <div key={hour.d} className="hour-line">
-                      <span className="day">{hour.d}</span>
-                      <span className="time">{hour.h}</span>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
