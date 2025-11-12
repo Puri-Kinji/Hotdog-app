@@ -353,3 +353,4 @@ function NoteEditor({
       </div>
     </div>
   );
+}
