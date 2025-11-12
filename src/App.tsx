@@ -111,6 +111,7 @@ export default function RestaurantApp() {
     useState<MenuItem["category"] | "All">("All");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [noteFor, setNoteFor] = useState<string | null>(null);
+  const [showCart, setShowCart] = useState(false);
 
   const filtered = useMemo(
     () => (category === "All" ? MENU : MENU.filter((m) => m.category === category)),
@@ -122,6 +123,8 @@ export default function RestaurantApp() {
   const subtotal = cart.reduce((s, l) => s + l.price * l.qty, 0);
   const tax = +(subtotal * 0.095).toFixed(2);
   const total = +(subtotal + tax).toFixed(2);
+
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
 
   function addToCart(item: MenuItem) {
     setCart((c) => {
@@ -149,6 +152,10 @@ export default function RestaurantApp() {
     setNoteFor(null);
   }
 
+  function toggleCart() {
+    setShowCart(!showCart);
+  }
+
   return (
     <div className="app">
 
@@ -161,6 +168,16 @@ export default function RestaurantApp() {
               <h1 className="restaurant-name">{RESTAURANT.name}</h1>
               <p className="tagline">{RESTAURANT.tagline}</p>
             </div>
+            
+            {/* Cart Icon */}
+            <button className="cart-icon-btn" onClick={toggleCart}>
+              <svg className="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {totalItems > 0 && (
+                <span className="cart-counter">{totalItems}</span>
+              )}
+            </button>
           </div>
         </div>
       </header>
@@ -224,101 +241,108 @@ export default function RestaurantApp() {
           </div>
         </div>
 
-        {/* Cart Sidebar */}
-        <aside className="cart-sidebar">
-          {/* Cart Bubble */}
-          <div className="cart-card">
-            <h2 className="cart-title">Your Order</h2>
+        {/* Cart Sidebar - Now shown as overlay when cart icon is clicked */}
+        {showCart && (
+          <div className="cart-overlay">
+            <div className="cart-sidebar">
+              {/* Cart Bubble */}
+              <div className="cart-card">
+                <div className="cart-header">
+                  <h2 className="cart-title">Your Order</h2>
+                  <button className="close-cart" onClick={toggleCart}>×</button>
+                </div>
 
-            {cart.length === 0 ? (
-              <div className="empty-cart">
-                <p>Your cart is empty. Add something tasty!</p>
-              </div>
-            ) : (
-              <div className="cart-content">
-                <div className="cart-items">
-                  {cart.map((item) => (
-                    <div key={item.id} className="cart-item">
-                      <div className="cart-item-main">
-                        <div className="item-details">
-                          <div className="item-name">{item.name}</div>
-                          {item.note && <div className="item-note">Note: {item.note}</div>}
-                        </div>
+                {cart.length === 0 ? (
+                  <div className="empty-cart">
+                    <p>Your cart is empty. Add something tasty!</p>
+                  </div>
+                ) : (
+                  <div className="cart-content">
+                    <div className="cart-items">
+                      {cart.map((item) => (
+                        <div key={item.id} className="cart-item">
+                          <div className="cart-item-main">
+                            <div className="item-details">
+                              <div className="item-name">{item.name}</div>
+                              {item.note && <div className="item-note">Note: {item.note}</div>}
+                            </div>
 
-                        <div className="item-controls">
-                          <div className="item-price">{money(item.price * item.qty)}</div>
+                            <div className="item-controls">
+                              <div className="item-price">{money(item.price * item.qty)}</div>
 
-                          <div className="quantity-controls">
-                            <button onClick={() => changeQty(item.id, -1)} className="qty-btn">
-                              −
+                              <div className="quantity-controls">
+                                <button onClick={() => changeQty(item.id, -1)} className="qty-btn">
+                                  −
+                                </button>
+                                <span className="qty-display">{item.qty}</span>
+                                <button onClick={() => changeQty(item.id, 1)} className="qty-btn">
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="cart-item-actions">
+                            <button onClick={() => setNoteFor(item.id)} className="action-btn">
+                              {item.note ? "Edit note" : "Add note"}
                             </button>
-                            <span className="qty-display">{item.qty}</span>
-                            <button onClick={() => changeQty(item.id, 1)} className="qty-btn">
-                              +
+                            <button onClick={() => removeFromCart(item.id)} className="action-btn remove">
+                              Remove
                             </button>
                           </div>
+
+                          {noteFor === item.id && (
+                            <NoteEditor
+                              initial={item.note || ""}
+                              onCancel={() => setNoteFor(null)}
+                              onSave={(val) => applyNote(item.id, val)}
+                            />
+                          )}
                         </div>
-                      </div>
+                      ))}
+                    </div>
 
-                      <div className="cart-item-actions">
-                        <button onClick={() => setNoteFor(item.id)} className="action-btn">
-                          {item.note ? "Edit note" : "Add note"}
-                        </button>
-                        <button onClick={() => removeFromCart(item.id)} className="action-btn remove">
-                          Remove
-                        </button>
+                    <div className="cart-totals">
+                      <div className="total-line">
+                        <span>Subtotal</span>
+                        <span>{money(subtotal)}</span>
                       </div>
+                      <div className="total-line">
+                        <span>Tax</span>
+                        <span>{money(tax)}</span>
+                      </div>
+                      <div className="total-line final">
+                        <span>Total</span>
+                        <span>{money(total)}</span>
+                      </div>
+                    </div>
 
-                      {noteFor === item.id && (
-                        <NoteEditor
-                          initial={item.note || ""}
-                          onCancel={() => setNoteFor(null)}
-                          onSave={(val) => applyNote(item.id, val)}
-                        />
-                      )}
+                    <div className="checkout-section">
+                      <button className="checkout-btn">Place Pickup Order</button>
+                      <p className="checkout-note">* Online checkout not wired in this demo</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Info Card Bubble */}
+              <div className="info-card">
+                <h3 className="info-title">Visit us</h3>
+                <p className="info-address">{RESTAURANT.address}</p>
+                <p className="info-phone">{RESTAURANT.phone}</p>
+
+                <div className="hours-grid">
+                  {RESTAURANT.hours.map((hour) => (
+                    <div key={hour.d} className="hour-line">
+                      <span className="day">{hour.d}</span>
+                      <span className="time">{hour.h}</span>
                     </div>
                   ))}
                 </div>
-
-                <div className="cart-totals">
-                  <div className="total-line">
-                    <span>Subtotal</span>
-                    <span>{money(subtotal)}</span>
-                  </div>
-                  <div className="total-line">
-                    <span>Tax</span>
-                    <span>{money(tax)}</span>
-                  </div>
-                  <div className="total-line final">
-                    <span>Total</span>
-                    <span>{money(total)}</span>
-                  </div>
-                </div>
-
-                <div className="checkout-section">
-                  <button className="checkout-btn">Place Pickup Order</button>
-                  <p className="checkout-note">* Online checkout not wired in this demo</p>
-                </div>
               </div>
-            )}
-          </div>
-
-          {/* Info Card Bubble */}
-          <div className="info-card">
-            <h3 className="info-title">Visit us</h3>
-            <p className="info-address">{RESTAURANT.address}</p>
-            <p className="info-phone">{RESTAURANT.phone}</p>
-
-            <div className="hours-grid">
-              {RESTAURANT.hours.map((hour) => (
-                <div key={hour.d} className="hour-line">
-                  <span className="day">{hour.d}</span>
-                  <span className="time">{hour.h}</span>
-                </div>
-              ))}
             </div>
           </div>
-        </aside>
+        )}
       </main>
     </div>
   );
