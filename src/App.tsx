@@ -353,4 +353,6 @@ function NoteEditor({
       </div>
     </div>
   );
-}
+} // <-- This brace closes the NoteEditor function
+
+} // <-- ADD THIS CLOSING BRACE to close the RestaurantApp component
