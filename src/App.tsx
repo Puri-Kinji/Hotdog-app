@@ -202,7 +202,7 @@ export default function RestaurantApp() {
                         <div className="item-content">
                           <div className="item-info">
                             <h3 className="item-name">{item.name}</h3>
-                            {item.badge && <span className="badge">{item.badge}</span>}
+                            {item.badge && <span className="badge" data-badge={item.badge}>{item.badge}</span>}
                           </div>
 
                           <div className="item-actions">
@@ -224,8 +224,9 @@ export default function RestaurantApp() {
           </div>
         </div>
 
-        {/* Cart */}
+        {/* Cart Sidebar */}
         <aside className="cart-sidebar">
+          {/* Cart Bubble */}
           <div className="cart-card">
             <h2 className="cart-title">Your Order</h2>
 
@@ -302,7 +303,7 @@ export default function RestaurantApp() {
             )}
           </div>
 
-          {/* Info Card */}
+          {/* Info Card Bubble */}
           <div className="info-card">
             <h3 className="info-title">Visit us</h3>
             <p className="info-address">{RESTAURANT.address}</p>
