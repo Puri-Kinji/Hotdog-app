@@ -593,7 +593,7 @@
   font-style: italic;
 }
 
-/* Info Card Bubble */
+/* Info Card Bubble - Simplified without hours */
 .info-card {
   background: white;
   border-radius: 16px;
@@ -604,50 +604,16 @@
 }
 
 .info-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-size: 1.25rem;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0 0 1rem 0;
 }
 
-.info-title::before {
-  content: "⏰";
-  font-size: 1.5rem;
-}
-
 .info-address, .info-phone {
   color: #666666;
   margin: 0.5rem 0;
   font-size: 0.9rem;
-}
-
-.hours-grid {
-  margin-top: 1rem;
-}
-
-.hour-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 0.9rem;
-}
-
-.hour-line:last-child {
-  border-bottom: none;
-}
-
-.day {
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.time {
-  color: #666666;
 }
 
 /* Responsive Design for Mobile */
