@@ -16,6 +16,7 @@ type MenuItem = {
     | "Desserts";
   desc?: string;
   badge?: "Vegan" | "Spicy" | "Kosher" | "New" | "Popular";
+  hasModifiers?: boolean;
 };
 
 type CartLine = {
@@ -24,6 +25,31 @@ type CartLine = {
   price: number;
   qty: number;
   note?: string;
+  bread?: string;
+  toppings?: ToppingSelection[];
+};
+
+type Topping = {
+  id: string;
+  name: string;
+  price: number;
+  category: "bread" | "free" | "paid";
+  isDefault?: boolean;
+};
+
+type ToppingSelection = {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+};
+
+type ModifierState = {
+  isOpen: boolean;
+  item: MenuItem | null;
+  selectedBread: string;
+  toppings: ToppingSelection[];
+  tempToppings: ToppingSelection[];
 };
 
 /* -------------------------------- Restaurant Info ------------------------------- */
@@ -46,29 +72,29 @@ const RESTAURANT = {
 /* ---------------------------------- Menu Data ---------------------------------- */
 const MENU: MenuItem[] = [
   // Dogs & Links
-  { id: "turkey-dog", name: "Turkey Dog", price: 4.99, category: "Dogs & Links" },
-  { id: "beef-dog", name: "Beef Dog (Kosher)", price: 6.49, category: "Dogs & Links", badge: "Kosher" },
-  { id: "beef-jumbo", name: "Beef Jumbo (Kosher)", price: 7.99, category: "Dogs & Links", badge: "Kosher" },
-  { id: "spicy-beef-link", name: "Spicy Beef Link", price: 9.49, category: "Dogs & Links", badge: "Spicy" },
-  { id: "chicken-link", name: "Chicken Link (Pork Casing)", price: 9.49, category: "Dogs & Links" },
-  { id: "vegan-dog", name: "Vegan Dog", price: 7.99, category: "Dogs & Links", badge: "Vegan" },
-  { id: "vegan-link", name: "Vegan Link", price: 9.49, category: "Dogs & Links", badge: "Vegan" },
-  { id: "pastrami-dog", name: "Pastrami Dog", price: 9.99, category: "Dogs & Links" },
+  { id: "turkey-dog", name: "Turkey Dog", price: 4.99, category: "Dogs & Links", hasModifiers: true },
+  { id: "beef-dog", name: "Beef Dog (Kosher)", price: 6.49, category: "Dogs & Links", badge: "Kosher", hasModifiers: true },
+  { id: "beef-jumbo", name: "Beef Jumbo (Kosher)", price: 7.99, category: "Dogs & Links", badge: "Kosher", hasModifiers: true },
+  { id: "spicy-beef-link", name: "Spicy Beef Link", price: 9.49, category: "Dogs & Links", badge: "Spicy", hasModifiers: true },
+  { id: "chicken-link", name: "Chicken Link (Pork Casing)", price: 9.49, category: "Dogs & Links", hasModifiers: true },
+  { id: "vegan-dog", name: "Vegan Dog", price: 7.99, category: "Dogs & Links", badge: "Vegan", hasModifiers: true },
+  { id: "vegan-link", name: "Vegan Link", price: 9.49, category: "Dogs & Links", badge: "Vegan", hasModifiers: true },
+  { id: "pastrami-dog", name: "Pastrami Dog", price: 9.99, category: "Dogs & Links", hasModifiers: true },
 
   // Burgers & Sandwiches
-  { id: "turkey-burger", name: "Turkey Burger", price: 9.99, category: "Burgers & Sandwiches" },
-  { id: "salmon-burger", name: "Salmon Burger", price: 9.99, category: "Burgers & Sandwiches" },
-  { id: "vegan-burger", name: "Vegan Burger", price: 13.99, category: "Burgers & Sandwiches", badge: "Vegan" },
-  { id: "pastrami-burger", name: "Pastrami Burger", price: 9.99, category: "Burgers & Sandwiches" },
-  { id: "double-turkey-burger", name: "Double Turkey Burger", price: 13.99, category: "Burgers & Sandwiches" },
-  { id: "double-salmon-burger", name: "Double Salmon Burger", price: 13.99, category: "Burgers & Sandwiches" },
-  { id: "double-vegan-burger", name: "Double Vegan Burger", price: 16.99, category: "Burgers & Sandwiches", badge: "Vegan" },
+  { id: "turkey-burger", name: "Turkey Burger", price: 9.99, category: "Burgers & Sandwiches", hasModifiers: true },
+  { id: "salmon-burger", name: "Salmon Burger", price: 9.99, category: "Burgers & Sandwiches", hasModifiers: true },
+  { id: "vegan-burger", name: "Vegan Burger", price: 13.99, category: "Burgers & Sandwiches", badge: "Vegan", hasModifiers: true },
+  { id: "pastrami-burger", name: "Pastrami Burger", price: 9.99, category: "Burgers & Sandwiches", hasModifiers: true },
+  { id: "double-turkey-burger", name: "Double Turkey Burger", price: 13.99, category: "Burgers & Sandwiches", hasModifiers: true },
+  { id: "double-salmon-burger", name: "Double Salmon Burger", price: 13.99, category: "Burgers & Sandwiches", hasModifiers: true },
+  { id: "double-vegan-burger", name: "Double Vegan Burger", price: 16.99, category: "Burgers & Sandwiches", badge: "Vegan", hasModifiers: true },
 
   // Sides & Extras
-  { id: "cheese", name: "Cheese (American, Cheddar)", price: 0.75, category: "Sides & Extras" },
-  { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Sides & Extras", badge: "Vegan" },
-  { id: "beef-chili-scoop", name: "Beef Chili Scoop", price: 1.0, category: "Sides & Extras" },
-  { id: "vegan-chili-scoop", name: "Vegan Chili Scoop", price: 2.49, category: "Sides & Extras", badge: "Vegan" },
+  { id: "cheese", name: "Cheese (American, Cheddar)", price: 0.75, category: "Sides & Extras", hasModifiers: true },
+  { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
+  { id: "beef-chili-scoop", name: "Beef Chili Scoop", price: 1.0, category: "Sides & Extras", hasModifiers: true },
+  { id: "vegan-chili-scoop", name: "Vegan Chili Scoop", price: 2.49, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
 
   // Drinks
   { id: "small-cup", name: "Small Cup (Lemonade, Playas Punch)", price: 3.99, category: "Drinks" },
@@ -85,6 +111,45 @@ const MENU: MenuItem[] = [
   { id: "pecan-pie", name: "Pecan Pie", price: 4.99, category: "Desserts" },
   { id: "bean-pie", name: "Bean Pie", price: 4.99, category: "Desserts" },
   { id: "sweet-potato-pie", name: "Sweet Potato Pie", price: 4.99, category: "Desserts" },
+];
+
+/* ---------------------------------- Modifiers Data ---------------------------------- */
+const BREAD_OPTIONS: Topping[] = [
+  { id: "no-bread", name: "No Bread", price: 0.00, category: "bread", isDefault: false },
+  { id: "white", name: "White", price: 0.00, category: "bread", isDefault: true },
+  { id: "wheat", name: "Wheat", price: 0.00, category: "bread", isDefault: false },
+  { id: "gluten-free", name: "Gluten Free", price: 0.50, category: "bread", isDefault: false },
+];
+
+const TOPPINGS: Topping[] = [
+  // Free toppings
+  { id: "mustard", name: "Mustard", price: 0.00, category: "free" },
+  { id: "ketchup", name: "Ketchup", price: 0.00, category: "free" },
+  { id: "relish", name: "Relish", price: 0.00, category: "free" },
+  { id: "mayo", name: "Mayo", price: 0.00, category: "free" },
+  { id: "vegan-mayo", name: "Vegan Mayo", price: 0.00, category: "free" },
+  { id: "raw-onion", name: "Raw Onion", price: 0.00, category: "free" },
+  { id: "ny-onions", name: "NY Onions (Sauteed)", price: 0.00, category: "free" },
+  { id: "lettuce", name: "Lettuce", price: 0.00, category: "free" },
+  { id: "tomato", name: "Tomato", price: 0.00, category: "free" },
+  { id: "pickle", name: "Pickle", price: 0.00, category: "free" },
+  { id: "jalapeno", name: "Jalapeno", price: 0.00, category: "free" },
+  { id: "chipotle", name: "Chipotle", price: 0.00, category: "free" },
+  { id: "hot-mustard", name: "Hot Mustard", price: 0.00, category: "free" },
+  { id: "bbo", name: "BBQ", price: 0.00, category: "free" },
+  { id: "vegan-chipotle", name: "Vegan Chipotle", price: 0.00, category: "free" },
+  { id: "sauerkraut", name: "Sauerkraut", price: 0.00, category: "free" },
+  { id: "tarter-sauce", name: "Tarter Sauce", price: 0.00, category: "free" },
+  { id: "ranch", name: "Ranch", price: 0.00, category: "free" },
+  { id: "hot-pepper", name: "Hot Pepper", price: 0.00, category: "free" },
+  
+  // Paid toppings
+  { id: "cheddar", name: "Cheddar Cheese", price: 1.00, category: "paid" },
+  { id: "american", name: "American Cheese", price: 1.00, category: "paid" },
+  { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "paid" },
+  { id: "beef-chili", name: "Beef Chili Scoop", price: 1.00, category: "paid" },
+  { id: "vegan-chili", name: "Vegan Chili Scoop", price: 2.49, category: "paid" },
+  { id: "pastrami", name: "Pastrami", price: 5.99, category: "paid" },
 ];
 
 const CATEGORIES: MenuItem["category"][] = [
@@ -124,6 +189,13 @@ export default function RestaurantApp() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [showCart, setShowCart] = useState(false);
+  const [modifierState, setModifierState] = useState<ModifierState>({
+    isOpen: false,
+    item: null,
+    selectedBread: "",
+    toppings: [],
+    tempToppings: []
+  });
 
   const filtered = useMemo(
     () => (category === "All" ? MENU : MENU.filter((m) => m.category === category)),
@@ -139,13 +211,38 @@ export default function RestaurantApp() {
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
   const { day, hours } = getCurrentDayInfo();
 
+  // Calculate total price with modifiers
+  const calculateModifierTotal = () => {
+    if (!modifierState.item) return 0;
+    
+    const breadPrice = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0;
+    const toppingsTotal = modifierState.tempToppings.reduce((sum, topping) => 
+      sum + (topping.price * topping.quantity), 0
+    );
+    
+    return modifierState.item.price + breadPrice + toppingsTotal;
+  };
+
   function addToCart(item: MenuItem) {
-    setCart((c) => {
-      const exists = c.find((l) => l.id === item.id);
-      return exists
-        ? c.map((l) => (l.id === item.id ? { ...l, qty: l.qty + 1 } : l))
-        : [...c, { id: item.id, name: item.name, price: item.price, qty: 1 }];
-    });
+    if (item.hasModifiers) {
+      // Open modifier modal
+      const defaultBread = BREAD_OPTIONS.find(b => b.isDefault)?.id || BREAD_OPTIONS[0].id;
+      setModifierState({
+        isOpen: true,
+        item,
+        selectedBread: defaultBread,
+        toppings: [],
+        tempToppings: []
+      });
+    } else {
+      // Add directly to cart for items without modifiers
+      setCart((c) => {
+        const exists = c.find((l) => l.id === item.id);
+        return exists
+          ? c.map((l) => (l.id === item.id ? { ...l, qty: l.qty + 1 } : l))
+          : [...c, { id: item.id, name: item.name, price: item.price, qty: 1 }];
+      });
+    }
   }
 
   function removeFromCart(id: string) {
@@ -168,6 +265,106 @@ export default function RestaurantApp() {
   function toggleCart() {
     setShowCart(!showCart);
   }
+
+  // Modifier functions
+  const updateToppingQuantity = (toppingId: string, quantity: number) => {
+    setModifierState(prev => {
+      const existingTopping = prev.tempToppings.find(t => t.id === toppingId);
+      
+      if (existingTopping) {
+        if (quantity === 0) {
+          // Remove topping if quantity is 0
+          return {
+            ...prev,
+            tempToppings: prev.tempToppings.filter(t => t.id !== toppingId)
+          };
+        } else {
+          // Update quantity
+          return {
+            ...prev,
+            tempToppings: prev.tempToppings.map(t => 
+              t.id === toppingId ? { ...t, quantity } : t
+            )
+          };
+        }
+      } else if (quantity > 0) {
+        // Add new topping
+        const topping = TOPPINGS.find(t => t.id === toppingId);
+        if (topping) {
+          return {
+            ...prev,
+            tempToppings: [...prev.tempToppings, {
+              id: topping.id,
+              name: topping.name,
+              quantity,
+              price: topping.price
+            }]
+          };
+        }
+      }
+      
+      return prev;
+    });
+  };
+
+  const confirmModifiers = () => {
+    if (!modifierState.item || !modifierState.selectedBread) return;
+    
+    const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
+    const breadName = bread?.name || "";
+    const breadPrice = bread?.price || 0;
+    
+    const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
+    
+    setCart((c) => {
+      const basePrice = modifierState.item!.price + breadPrice;
+      const toppingsTotal = finalToppings.reduce((sum, topping) => 
+        sum + (topping.price * topping.quantity), 0
+      );
+      const totalPrice = basePrice + toppingsTotal;
+      
+      const itemName = `${modifierState.item!.name} (${breadName})`;
+      
+      const exists = c.find((l) => 
+        l.id === modifierState.item!.id && 
+        l.bread === breadName &&
+        JSON.stringify(l.toppings) === JSON.stringify(finalToppings)
+      );
+      
+      if (exists) {
+        return c.map((l) => 
+          l.id === exists.id ? { ...l, qty: l.qty + 1 } : l
+        );
+      } else {
+        return [...c, { 
+          id: modifierState.item!.id, 
+          name: itemName, 
+          price: totalPrice, 
+          qty: 1,
+          bread: breadName,
+          toppings: finalToppings
+        }];
+      }
+    });
+    
+    setModifierState({
+      isOpen: false,
+      item: null,
+      selectedBread: "",
+      toppings: [],
+      tempToppings: []
+    });
+  };
+
+  const cancelModifiers = () => {
+    setModifierState({
+      isOpen: false,
+      item: null,
+      selectedBread: "",
+      toppings: [],
+      tempToppings: []
+    });
+  };
 
   return (
     <div className="app">
@@ -291,6 +488,14 @@ export default function RestaurantApp() {
                           <div className="cart-item-main">
                             <div className="item-details">
                               <div className="item-name">{item.name}</div>
+                              {item.bread && <div className="item-bread">Bread: {item.bread}</div>}
+                              {item.toppings && item.toppings.length > 0 && (
+                                <div className="item-toppings">
+                                  Toppings: {item.toppings.map(t => 
+                                    `${t.name}${t.quantity > 1 ? ` (x${t.quantity})` : ''}`
+                                  ).join(', ')}
+                                </div>
+                              )}
                               {item.note && <div className="item-note">Note: {item.note}</div>}
                             </div>
 
@@ -350,6 +555,156 @@ export default function RestaurantApp() {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modifier Modal */}
+        {modifierState.isOpen && modifierState.item && (
+          <div className="modifier-overlay">
+            <div className="modifier-modal">
+              <div className="modifier-header">
+                <h2>Customize {modifierState.item.name}</h2>
+                <button className="close-modifier" onClick={cancelModifiers}>×</button>
+              </div>
+
+              <div className="modifier-content">
+                {/* Bread Selection */}
+                <div className="modifier-section">
+                  <h3>Bread Selection *</h3>
+                  <div className="bread-options">
+                    {BREAD_OPTIONS.map(bread => (
+                      <label key={bread.id} className="bread-option">
+                        <input
+                          type="radio"
+                          name="bread"
+                          value={bread.id}
+                          checked={modifierState.selectedBread === bread.id}
+                          onChange={(e) => setModifierState(prev => ({
+                            ...prev,
+                            selectedBread: e.target.value
+                          }))}
+                        />
+                        <span className="bread-name">{bread.name}</span>
+                        <span className="bread-price">{money(bread.price)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Free Toppings */}
+                <div className="modifier-section">
+                  <h3>Free Toppings</h3>
+                  <div className="toppings-grid">
+                    {TOPPINGS.filter(t => t.category === "free").map(topping => {
+                      const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
+                      const quantity = currentTopping?.quantity || 0;
+                      
+                      return (
+                        <div key={topping.id} className="topping-item">
+                          <span className="topping-name">{topping.name}</span>
+                          <div className="topping-controls">
+                            <button
+                              className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 0)}
+                            >
+                              0
+                            </button>
+                            <button
+                              className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 1)}
+                            >
+                              1
+                            </button>
+                            <button
+                              className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 2)}
+                            >
+                              2
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Paid Toppings */}
+                <div className="modifier-section">
+                  <h3>Premium Toppings</h3>
+                  <div className="toppings-grid">
+                    {TOPPINGS.filter(t => t.category === "paid").map(topping => {
+                      const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
+                      const quantity = currentTopping?.quantity || 0;
+                      
+                      return (
+                        <div key={topping.id} className="topping-item paid">
+                          <div className="topping-info">
+                            <span className="topping-name">{topping.name}</span>
+                            <span className="topping-price">{money(topping.price)}</span>
+                          </div>
+                          <div className="topping-controls">
+                            <button
+                              className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 0)}
+                            >
+                              0
+                            </button>
+                            <button
+                              className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 1)}
+                            >
+                              1
+                            </button>
+                            <button
+                              className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 2)}
+                            >
+                              2
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Total and Actions */}
+                <div className="modifier-total">
+                  <div className="total-line">
+                    <span>Base Price:</span>
+                    <span>{money(modifierState.item.price)}</span>
+                  </div>
+                  <div className="total-line">
+                    <span>Bread:</span>
+                    <span>{money(BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0)}</span>
+                  </div>
+                  <div className="total-line">
+                    <span>Toppings:</span>
+                    <span>{money(modifierState.tempToppings.reduce((sum, t) => sum + (t.price * t.quantity), 0))}</span>
+                  </div>
+                  <div className="total-line final">
+                    <span>Total:</span>
+                    <span>{money(calculateModifierTotal())}</span>
+                  </div>
+                </div>
+
+                <div className="modifier-actions">
+                  <button 
+                    className="cancel-btn" 
+                    onClick={cancelModifiers}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="confirm-btn" 
+                    onClick={confirmModifiers}
+                    disabled={!modifierState.selectedBread}
+                  >
+                    Confirm - {money(calculateModifierTotal())}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
