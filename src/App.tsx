@@ -318,49 +318,50 @@ export default function RestaurantApp() {
     });
   };
 
-  const confirmModifiers = () => {
-    if (!modifierState.item || !modifierState.selectedBread) return;
+ const confirmModifiers = () => {
+  if (!modifierState.item || !modifierState.selectedBread) return;
+  
+  // Destructure to make TypeScript happy
+  const { item } = modifierState;
+  const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
+  const breadName = bread?.name || "";
+  const breadPrice = bread?.price || 0;
+  
+  const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
+  
+  setCart((c) => {
+    const basePrice = item.price + breadPrice;
+    const toppingsTotal = finalToppings.reduce((sum, topping) => 
+      sum + (topping.price * topping.quantity), 0
+    );
+    const totalPrice = basePrice + toppingsTotal;
     
-    const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
-    const breadName = bread?.name || "";
-    const breadPrice = bread?.price || 0;
+    const itemName = `${item.name} (${breadName})`;
     
-    const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
+    const exists = c.find((l) => 
+      l.id === item.id && 
+      l.bread === breadName &&
+      JSON.stringify(l.toppings) === JSON.stringify(finalToppings)
+    );
     
-    setCart((c) => {
-      // Use optional chaining and nullish coalescing for safety
-      const basePrice = (modifierState.item?.price || 0) + breadPrice;
-      const toppingsTotal = finalToppings.reduce((sum, topping) => 
-        sum + (topping.price * topping.quantity), 0
+    if (exists) {
+      return c.map((l) => 
+        l.id === exists.id ? { ...l, qty: l.qty + 1 } : l
       );
-      const totalPrice = basePrice + toppingsTotal;
-      
-      const itemName = `${modifierState.item?.name || 'Item'} (${breadName})`;
-      
-      const exists = c.find((l) => 
-        l.id === modifierState.item?.id && 
-        l.bread === breadName &&
-        JSON.stringify(l.toppings) === JSON.stringify(finalToppings)
-      );
-      
-      if (exists) {
-        return c.map((l) => 
-          l.id === exists.id ? { ...l, qty: l.qty + 1 } : l
-        );
-      } else {
-        return [...c, { 
-          id: modifierState.item?.id || 'unknown', 
-          name: itemName, 
-          price: totalPrice, 
-          qty: 1,
-          bread: breadName,
-          toppings: finalToppings
-        }];
-      }
-    });
-    
-    cancelModifiers();
-  };
+    } else {
+      return [...c, { 
+        id: item.id, 
+        name: itemName, 
+        price: totalPrice, 
+        qty: 1,
+        bread: breadName,
+        toppings: finalToppings
+      }];
+    }
+  });
+  
+  cancelModifiers();
+};
 
   return (
     <div className="app">
