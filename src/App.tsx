@@ -17,6 +17,7 @@ type MenuItem = {
   desc?: string;
   badge?: "Vegan" | "Spicy" | "Kosher" | "New" | "Popular";
   hasModifiers?: boolean;
+  specialModifiers?: "fritos" | "chips";
 };
 
 type CartLine = {
@@ -27,6 +28,8 @@ type CartLine = {
   note?: string;
   bread?: string;
   toppings?: ToppingSelection[];
+  chipChoice?: string;
+  doubleBagged?: boolean;
 };
 
 type Topping = {
@@ -51,6 +54,8 @@ type ModifierState = {
   toppings: ToppingSelection[];
   tempToppings: ToppingSelection[];
   isSideOrExtra?: boolean;
+  chipChoice?: string;
+  doubleBagged?: boolean;
 };
 
 /* -------------------------------- Restaurant Info ------------------------------- */
@@ -79,7 +84,7 @@ const MENU: MenuItem[] = [
   { id: "spicy-beef-link", name: "Spicy Beef Link", price: 9.49, category: "Dogs & Links", badge: "Spicy", hasModifiers: true },
   { id: "chicken-link", name: "Chicken Link (Pork Casing)", price: 9.49, category: "Dogs & Links", badge: "Spicy", hasModifiers: true },
   { id: "vegan-dog", name: "Vegan Dog", price: 7.99, category: "Dogs & Links", badge: "Vegan", hasModifiers: true },
-  { id: "vegan-link", name: "Vegan Link", price: 9.49, category: "Dogs & Links", badge: "Vegan", badge: "Spicy", hasModifiers: true },
+  { id: "vegan-link", name: "Vegan Link", price: 9.49, category: "Dogs & Links", badge: "Vegan", hasModifiers: true },
   { id: "pastrami-dog", name: "Pastrami Dog", price: 9.99, category: "Dogs & Links", hasModifiers: true },
 
   // Burgers & Sandwiches
@@ -104,11 +109,12 @@ const MENU: MenuItem[] = [
   { id: "medium-vegan-chili-bowl", name: "MEDIUM VEGAN CHILI BOWL", price: 11.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
   { id: "large-beef-chili-bowl", name: "LARGE BEEF CHILI BOWL", price: 8.49, category: "Sides & Extras", hasModifiers: true },
   { id: "large-vegan-chili-bowl", name: "LARGE VEGAN CHILI BOWL", price: 15.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
-  { id: "beef-chili-cheese-fritos", name: "BEEF CHILI CHEESE FRITOS", price: 3.49, category: "Sides & Extras", hasModifiers: true },
-  { id: "vegan-chili-cheese-fritos", name: "VEGAN CHILI CHEESE FRITOS - Regular Cheese", price: 5.49, category: "Sides & Extras", hasModifiers: true },
-  { id: "vegan-chili-vegan-cheese-fritos", name: "VEGAN CHILI VEGAN CHEESE FRITOS", price: 7.74, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
-  { id: "bag-of-chips", name: "BAG OF CHIPS", price: 1.00, category: "Sides & Extras" },
+  { id: "beef-chili-cheese-fritos", name: "BEEF CHILI CHEESE FRITOS", price: 3.49, category: "Sides & Extras", hasModifiers: true, specialModifiers: "fritos" },
+  { id: "vegan-chili-cheese-fritos", name: "VEGAN CHILI CHEESE FRITOS - Regular Cheese", price: 5.49, category: "Sides & Extras", hasModifiers: true, specialModifiers: "fritos" },
+  { id: "vegan-chili-vegan-cheese-fritos", name: "VEGAN CHILI VEGAN CHEESE FRITOS", price: 7.74, category: "Sides & Extras", badge: "Vegan", hasModifiers: true, specialModifiers: "fritos" },
+  { id: "bag-of-chips", name: "BAG OF CHIPS", price: 1.00, category: "Sides & Extras", hasModifiers: true, specialModifiers: "chips" },
   { id: "jamaican-patties", name: "Jamaican Patties", price: 5.00, category: "Sides & Extras" },
+];
 
  // Drinks
 { id: "small-playas-punch", name: "SMALL PLAYAS PUNCH", price: 4.49, category: "Drinks" },
@@ -245,16 +251,27 @@ export default function RestaurantApp() {
       sum + (topping.price * topping.quantity), 0
     );
     
-    return modifierState.item.price + breadPrice + toppingsTotal;
+    // Add double bagged charge for Fritos items
+    const doubleBaggedCharge = modifierState.doubleBagged ? 1.00 : 0;
+    
+    return modifierState.item.price + breadPrice + toppingsTotal + doubleBaggedCharge;
   };
 
   function addToCart(item: MenuItem) {
-    if (item.hasModifiers) {
+    if (item.hasModifiers || item.specialModifiers) {
       // Check if it's a Sides & Extras item
       const isSideOrExtra = item.category === "Sides & Extras";
       
       // Open modifier modal with appropriate configuration
       const defaultBread = isSideOrExtra ? "no-bread" : (BREAD_OPTIONS.find(b => b.isDefault)?.id || BREAD_OPTIONS[0].id);
+      
+      // Set default chip choice based on item type
+      let defaultChipChoice = "";
+      if (item.specialModifiers === "fritos") {
+        defaultChipChoice = "Fritos";
+      } else if (item.specialModifiers === "chips") {
+        defaultChipChoice = "Lays";
+      }
       
       setModifierState({
         isOpen: true,
@@ -262,7 +279,9 @@ export default function RestaurantApp() {
         selectedBread: defaultBread,
         toppings: [],
         tempToppings: [],
-        isSideOrExtra: isSideOrExtra
+        isSideOrExtra: isSideOrExtra,
+        chipChoice: defaultChipChoice,
+        doubleBagged: false
       });
     } else {
       // Add directly to cart for items without modifiers
@@ -380,10 +399,17 @@ export default function RestaurantApp() {
       const toppingsTotal = finalToppings.reduce((sum, topping) => 
         sum + (topping.price * topping.quantity), 0
       );
-      const totalPrice = basePrice + toppingsTotal;
+      const doubleBaggedCharge = modifierState.doubleBagged ? 1.00 : 0;
+      const totalPrice = basePrice + toppingsTotal + doubleBaggedCharge;
       
       // Create appropriate item name
       let itemName = modifierState.item!.name;
+      
+      // Add chip choice to name if applicable
+      if (modifierState.chipChoice) {
+        itemName = `${modifierState.item!.name} (${modifierState.chipChoice})`;
+      }
+      
       if (!modifierState.isSideOrExtra && breadName && breadName !== "No Bread") {
         itemName = `${modifierState.item!.name} (${breadName})`;
       }
@@ -391,6 +417,8 @@ export default function RestaurantApp() {
       const exists = c.find((l) => 
         l.id === modifierState.item!.id && 
         l.bread === breadName &&
+        l.chipChoice === modifierState.chipChoice &&
+        l.doubleBagged === modifierState.doubleBagged &&
         JSON.stringify(l.toppings) === JSON.stringify(finalToppings)
       );
       
@@ -405,7 +433,9 @@ export default function RestaurantApp() {
           price: totalPrice, 
           qty: 1,
           bread: modifierState.isSideOrExtra ? undefined : breadName,
-          toppings: finalToppings
+          toppings: finalToppings,
+          chipChoice: modifierState.chipChoice,
+          doubleBagged: modifierState.doubleBagged
         }];
       }
     });
@@ -533,6 +563,8 @@ export default function RestaurantApp() {
                             <div className="item-details">
                               <div className="item-name">{item.name}</div>
                               {item.bread && <div className="item-bread">Bread: {item.bread}</div>}
+                              {item.chipChoice && <div className="item-chip-choice">Chips: {item.chipChoice}</div>}
+                              {item.doubleBagged && <div className="item-double-bagged">Double Bagged (+$1.00)</div>}
                               {item.toppings && item.toppings.length > 0 && (
                                 <div className="item-toppings">
                                   Toppings: {item.toppings.map(t => 
@@ -614,8 +646,117 @@ export default function RestaurantApp() {
               </div>
 
               <div className="modifier-content">
-                {/* Bread Selection - Only show for non-sides/extras */}
-                {!modifierState.isSideOrExtra && (
+                {/* Special Chip Modifiers for Fritos items */}
+                {modifierState.item.specialModifiers === "fritos" && (
+                  <div className="modifier-section">
+                    <h3>Chip & Bag Choice</h3>
+                    <div className="chip-options">
+                      <label className="chip-option">
+                        <input
+                          type="radio"
+                          name="chipChoice"
+                          value="Fritos"
+                          checked={modifierState.chipChoice === "Fritos"}
+                          onChange={(e) => setModifierState(prev => ({
+                            ...prev,
+                            chipChoice: e.target.value
+                          }))}
+                        />
+                        <span className="chip-name">Fritos</span>
+                      </label>
+                      <label className="chip-option">
+                        <input
+                          type="radio"
+                          name="chipChoice"
+                          value="Doritos"
+                          checked={modifierState.chipChoice === "Doritos"}
+                          onChange={(e) => setModifierState(prev => ({
+                            ...prev,
+                            chipChoice: e.target.value
+                          }))}
+                        />
+                        <span className="chip-name">Doritos</span>
+                      </label>
+                    </div>
+                    <div className="double-bag-option">
+                      <label className="double-bag-label">
+                        <input
+                          type="checkbox"
+                          checked={modifierState.doubleBagged || false}
+                          onChange={(e) => setModifierState(prev => ({
+                            ...prev,
+                            doubleBagged: e.target.checked
+                          }))}
+                        />
+                        <span className="double-bag-name">Double Bagged (+$1.00)</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Special Chip Modifiers for Bag of Chips */}
+                {modifierState.item.specialModifiers === "chips" && (
+                  <div className="modifier-section">
+                    <h3>Chip Choice *</h3>
+                    <div className="chip-options">
+                      <label className="chip-option">
+                        <input
+                          type="radio"
+                          name="chipChoice"
+                          value="Lays"
+                          checked={modifierState.chipChoice === "Lays"}
+                          onChange={(e) => setModifierState(prev => ({
+                            ...prev,
+                            chipChoice: e.target.value
+                          }))}
+                        />
+                        <span className="chip-name">Lays</span>
+                      </label>
+                      <label className="chip-option">
+                        <input
+                          type="radio"
+                          name="chipChoice"
+                          value="Doritos"
+                          checked={modifierState.chipChoice === "Doritos"}
+                          onChange={(e) => setModifierState(prev => ({
+                            ...prev,
+                            chipChoice: e.target.value
+                          }))}
+                        />
+                        <span className="chip-name">Doritos</span>
+                      </label>
+                      <label className="chip-option">
+                        <input
+                          type="radio"
+                          name="chipChoice"
+                          value="BBQ"
+                          checked={modifierState.chipChoice === "BBQ"}
+                          onChange={(e) => setModifierState(prev => ({
+                            ...prev,
+                            chipChoice: e.target.value
+                          }))}
+                        />
+                        <span className="chip-name">BBQ</span>
+                      </label>
+                      <label className="chip-option">
+                        <input
+                          type="radio"
+                          name="chipChoice"
+                          value="Fritos"
+                          checked={modifierState.chipChoice === "Fritos"}
+                          onChange={(e) => setModifierState(prev => ({
+                            ...prev,
+                            chipChoice: e.target.value
+                          }))}
+                        />
+                        <span className="chip-name">Fritos</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bread Selection - Only show for non-sides/extras and items without special modifiers */}
+                {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && (
                   <div className="modifier-section">
                     <h3>Bread Selection *</h3>
                     <div className="bread-options">
@@ -641,88 +782,92 @@ export default function RestaurantApp() {
                   </div>
                 )}
 
-                {/* Free Toppings */}
-                <div className="modifier-section">
-                  <h3>Free Toppings</h3>
-                  <div className="toppings-grid">
-                    {TOPPINGS.filter(t => t.category === "free").map(topping => {
-                      const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
-                      const quantity = currentTopping?.quantity || 0;
-                      
-                      return (
-                        <div key={topping.id} className="topping-item">
-                          <div className="topping-info">
-                            <span className="topping-name">{topping.name}</span>
-                            <span className="topping-price">{money(topping.price)}</span>
+                {/* Free Toppings - Only show for items without special modifiers */}
+                {!modifierState.item.specialModifiers && (
+                  <div className="modifier-section">
+                    <h3>Free Toppings</h3>
+                    <div className="toppings-grid">
+                      {TOPPINGS.filter(t => t.category === "free").map(topping => {
+                        const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
+                        const quantity = currentTopping?.quantity || 0;
+                        
+                        return (
+                          <div key={topping.id} className="topping-item">
+                            <div className="topping-info">
+                              <span className="topping-name">{topping.name}</span>
+                              <span className="topping-price">{money(topping.price)}</span>
+                            </div>
+                            <div className="topping-controls">
+                              <button
+                                className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
+                                onClick={() => updateToppingQuantity(topping.id, 0)}
+                              >
+                                None
+                              </button>
+                              <button
+                                className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
+                                onClick={() => updateToppingQuantity(topping.id, 1)}
+                              >
+                                Normal
+                              </button>
+                              <button
+                                className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
+                                onClick={() => updateToppingQuantity(topping.id, 2)}
+                              >
+                                Extra
+                              </button>
+                            </div>
                           </div>
-                          <div className="topping-controls">
-                            <button
-                              className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
-                              onClick={() => updateToppingQuantity(topping.id, 0)}
-                            >
-                              None
-                            </button>
-                            <button
-                              className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
-                              onClick={() => updateToppingQuantity(topping.id, 1)}
-                            >
-                              Normal
-                            </button>
-                            <button
-                              className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
-                              onClick={() => updateToppingQuantity(topping.id, 2)}
-                            >
-                              Extra
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Paid Toppings */}
-                <div className="modifier-section">
-                  <h3>Premium Toppings</h3>
-                  <div className="toppings-grid">
-                    {TOPPINGS.filter(t => t.category === "paid").map(topping => {
-                      const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
-                      const quantity = currentTopping?.quantity || 0;
-                      const totalCost = topping.price * quantity;
-                      
-                      return (
-                        <div key={topping.id} className="topping-item paid">
-                          <div className="topping-info">
-                            <span className="topping-name">{topping.name}</span>
-                            <span className="topping-price has-cost">
-                              +{money(topping.price)} {quantity > 1 ? `× ${quantity} = +${money(totalCost)}` : ''}
-                            </span>
+                {/* Paid Toppings - Only show for items without special modifiers */}
+                {!modifierState.item.specialModifiers && (
+                  <div className="modifier-section">
+                    <h3>Premium Toppings</h3>
+                    <div className="toppings-grid">
+                      {TOPPINGS.filter(t => t.category === "paid").map(topping => {
+                        const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
+                        const quantity = currentTopping?.quantity || 0;
+                        const totalCost = topping.price * quantity;
+                        
+                        return (
+                          <div key={topping.id} className="topping-item paid">
+                            <div className="topping-info">
+                              <span className="topping-name">{topping.name}</span>
+                              <span className="topping-price has-cost">
+                                +{money(topping.price)} {quantity > 1 ? `× ${quantity} = +${money(totalCost)}` : ''}
+                              </span>
+                            </div>
+                            <div className="topping-controls">
+                              <button
+                                className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
+                                onClick={() => updateToppingQuantity(topping.id, 0)}
+                              >
+                                None
+                              </button>
+                              <button
+                                className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
+                                onClick={() => updateToppingQuantity(topping.id, 1)}
+                              >
+                                Normal
+                              </button>
+                              <button
+                                className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
+                                onClick={() => updateToppingQuantity(topping.id, 2)}
+                              >
+                                Extra
+                              </button>
+                            </div>
                           </div>
-                          <div className="topping-controls">
-                            <button
-                              className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
-                              onClick={() => updateToppingQuantity(topping.id, 0)}
-                            >
-                              None
-                            </button>
-                            <button
-                              className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
-                              onClick={() => updateToppingQuantity(topping.id, 1)}
-                            >
-                              Normal
-                            </button>
-                            <button
-                              className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
-                              onClick={() => updateToppingQuantity(topping.id, 2)}
-                            >
-                              Extra
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Total and Actions */}
                 <div className="modifier-total">
@@ -731,8 +876,8 @@ export default function RestaurantApp() {
                     <span>{money(modifierState.item.price)}</span>
                   </div>
                   
-                  {/* Only show bread line for non-sides/extras */}
-                  {!modifierState.isSideOrExtra && (
+                  {/* Only show bread line for non-sides/extras and items without special modifiers */}
+                  {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && (
                     <div className="total-line">
                       <span>Bread:</span>
                       {(() => {
@@ -748,21 +893,32 @@ export default function RestaurantApp() {
                     </div>
                   )}
                   
-                  <div className="total-line">
-                    <span>Toppings:</span>
-                    {(() => {
-                      const toppingsTotal = modifierState.tempToppings.reduce(
-                        (sum, t) => sum + t.price * t.quantity,
-                        0
-                      );
-                      return (
-                        <span className={toppingsTotal > 0 ? 'price-increase' : ''}>
-                          {toppingsTotal > 0 ? '+' : ''}
-                          {money(toppingsTotal)}
-                        </span>
-                      );
-                    })()}
-                  </div>
+                  {/* Show double bagged charge for Fritos items */}
+                  {modifierState.item.specialModifiers === "fritos" && modifierState.doubleBagged && (
+                    <div className="total-line">
+                      <span>Double Bagged:</span>
+                      <span className="price-increase">+{money(1.00)}</span>
+                    </div>
+                  )}
+                  
+                  {/* Show toppings total only for items without special modifiers */}
+                  {!modifierState.item.specialModifiers && (
+                    <div className="total-line">
+                      <span>Toppings:</span>
+                      {(() => {
+                        const toppingsTotal = modifierState.tempToppings.reduce(
+                          (sum, t) => sum + t.price * t.quantity,
+                          0
+                        );
+                        return (
+                          <span className={toppingsTotal > 0 ? 'price-increase' : ''}>
+                            {toppingsTotal > 0 ? '+' : ''}
+                            {money(toppingsTotal)}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                  )}
 
                   <div className="total-line final">
                     <span>Total:</span>
@@ -780,7 +936,14 @@ export default function RestaurantApp() {
                   <button 
                     className="confirm-btn" 
                     onClick={confirmModifiers}
-                    disabled={!modifierState.isSideOrExtra && !modifierState.selectedBread}
+                    disabled={
+                      // For regular items: require bread selection
+                      (!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedBread) ||
+                      // For bag of chips: require chip choice
+                      (modifierState.item.specialModifiers === "chips" && !modifierState.chipChoice) ||
+                      // For fritos items: require chip choice
+                      (modifierState.item.specialModifiers === "fritos" && !modifierState.chipChoice)
+                    }
                   >
                     Confirm - {money(calculateModifierTotal())}
                   </button>
