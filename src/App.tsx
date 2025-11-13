@@ -408,7 +408,7 @@ export default function RestaurantApp() {
               {["All", ...CATEGORIES].map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setCategory(cat as any)}
+                  onClick={() => setCategory(cat as MenuItem["category"] | "All")}
                   className={`category-tab ${category === cat ? "active" : ""}`}
                 >
                   {cat}
