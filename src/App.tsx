@@ -108,6 +108,7 @@ const MENU: MenuItem[] = [
   { id: "vegan-chili-cheese-fritos", name: "VEGAN CHILI CHEESE FRITOS - Regular Cheese", price: 5.49, category: "Sides & Extras", hasModifiers: true },
   { id: "vegan-chili-vegan-cheese-fritos", name: "VEGAN CHILI VEGAN CHEESE FRITOS", price: 7.74, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
   { id: "bag-of-chips", name: "BAG OF CHIPS", price: 1.00, category: "Sides & Extras" },
+  { id: "jamaican-patties", name: "Jamaican Patties", price: 5.00, category: "Sides & Extras" },
 
  // Drinks
 { id: "small-playas-punch", name: "SMALL PLAYAS PUNCH", price: 4.49, category: "Drinks" },
