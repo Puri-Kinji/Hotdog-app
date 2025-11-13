@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import "./index.css";
 import "./App.css";
 import logo from "./assets/Yellow + Black Logo_Earle_s on Crenshaw.png";
+
 /* ---------------------------------- Types ---------------------------------- */
 type MenuItem = {
   id: string;
@@ -49,6 +50,7 @@ type ModifierState = {
   selectedBread: string;
   toppings: ToppingSelection[];
   tempToppings: ToppingSelection[];
+  isSideOrExtra?: boolean;
 };
 
 /* -------------------------------- Restaurant Info ------------------------------- */
@@ -193,7 +195,8 @@ export default function RestaurantApp() {
     item: null,
     selectedBread: "",
     toppings: [],
-    tempToppings: []
+    tempToppings: [],
+    isSideOrExtra: false
   });
 
   const filtered = useMemo(
@@ -214,7 +217,12 @@ export default function RestaurantApp() {
   const calculateModifierTotal = () => {
     if (!modifierState.item) return 0;
     
-    const breadPrice = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0;
+    let breadPrice = 0;
+    // Only include bread price if it's NOT a side/extra
+    if (!modifierState.isSideOrExtra) {
+      breadPrice = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0;
+    }
+    
     const toppingsTotal = modifierState.tempToppings.reduce((sum, topping) => 
       sum + (topping.price * topping.quantity), 0
     );
@@ -224,14 +232,19 @@ export default function RestaurantApp() {
 
   function addToCart(item: MenuItem) {
     if (item.hasModifiers) {
-      // Open modifier modal
-      const defaultBread = BREAD_OPTIONS.find(b => b.isDefault)?.id || BREAD_OPTIONS[0].id;
+      // Check if it's a Sides & Extras item
+      const isSideOrExtra = item.category === "Sides & Extras";
+      
+      // Open modifier modal with appropriate configuration
+      const defaultBread = isSideOrExtra ? "no-bread" : (BREAD_OPTIONS.find(b => b.isDefault)?.id || BREAD_OPTIONS[0].id);
+      
       setModifierState({
         isOpen: true,
         item,
         selectedBread: defaultBread,
         toppings: [],
-        tempToppings: []
+        tempToppings: [],
+        isSideOrExtra: isSideOrExtra
       });
     } else {
       // Add directly to cart for items without modifiers
@@ -265,76 +278,82 @@ export default function RestaurantApp() {
     setShowCart(!showCart);
   }
 
-  // Add the missing cancelModifiers function
+  // Cancel modifiers
   const cancelModifiers = () => {
     setModifierState({
       isOpen: false,
       item: null,
       selectedBread: "",
       toppings: [],
-      tempToppings: []
+      tempToppings: [],
+      isSideOrExtra: false
     });
   };
 
-// Modifier functions
-const updateToppingQuantity = (toppingId: string, quantity: number) => {
-  setModifierState(prev => {
-    const existing = prev.tempToppings.find(t => t.id === toppingId);
+  // Update topping quantity
+  const updateToppingQuantity = (toppingId: string, quantity: number) => {
+    setModifierState(prev => {
+      const existing = prev.tempToppings.find(t => t.id === toppingId);
 
-    // Count each topping as 1, even if extra
-    const selectedCount = prev.tempToppings.filter(t => t.quantity > 0).length;
+      // Count each topping as 1, even if extra
+      const selectedCount = prev.tempToppings.filter(t => t.quantity > 0).length;
 
-    // --- Remove topping ---
-    if (quantity === 0) {
-      return {
-        ...prev,
-        tempToppings: prev.tempToppings.filter(t => t.id !== toppingId)
-      };
-    }
+      // --- Remove topping ---
+      if (quantity === 0) {
+        return {
+          ...prev,
+          tempToppings: prev.tempToppings.filter(t => t.id !== toppingId)
+        };
+      }
 
-    // --- Already selected (Normal → Extra allowed) ---
-    if (existing) {
-      return {
-        ...prev,
-        tempToppings: prev.tempToppings.map(t =>
-          t.id === toppingId ? { ...t, quantity } : t
-        )
-      };
-    }
+      // --- Already selected (Normal → Extra allowed) ---
+      if (existing) {
+        return {
+          ...prev,
+          tempToppings: prev.tempToppings.map(t =>
+            t.id === toppingId ? { ...t, quantity } : t
+          )
+        };
+      }
 
-    // --- NEW topping added ---
-    if (selectedCount >= 6) {
-      alert("You can choose up to 6 toppings total.");
+      // --- NEW topping added ---
+      if (selectedCount >= 6) {
+        alert("You can choose up to 6 toppings total.");
+        return prev;
+      }
+
+      const topping = TOPPINGS.find(t => t.id === toppingId);
+      if (topping) {
+        return {
+          ...prev,
+          tempToppings: [
+            ...prev.tempToppings,
+            {
+              id: topping.id,
+              name: topping.name,
+              quantity,
+              price: topping.price
+            }
+          ]
+        };
+      }
+
       return prev;
-    }
-
-    const topping = TOPPINGS.find(t => t.id === toppingId);
-    if (topping) {
-      return {
-        ...prev,
-        tempToppings: [
-          ...prev.tempToppings,
-          {
-            id: topping.id,
-            name: topping.name,
-            quantity,
-            price: topping.price
-          }
-        ]
-      };
-    }
-
-    return prev;
-  });
-};
-
+    });
+  };
 
   const confirmModifiers = () => {
-    if (!modifierState.item || !modifierState.selectedBread) return;
+    if (!modifierState.item) return;
     
-    const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
-    const breadName = bread?.name || "";
-    const breadPrice = bread?.price || 0;
+    let breadName = "";
+    let breadPrice = 0;
+    
+    // Only include bread if it's NOT a side/extra
+    if (!modifierState.isSideOrExtra) {
+      const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
+      breadName = bread?.name || "";
+      breadPrice = bread?.price || 0;
+    }
     
     const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
     
@@ -345,7 +364,11 @@ const updateToppingQuantity = (toppingId: string, quantity: number) => {
       );
       const totalPrice = basePrice + toppingsTotal;
       
-      const itemName = `${modifierState.item!.name} (${breadName})`;
+      // Create appropriate item name
+      let itemName = modifierState.item!.name;
+      if (!modifierState.isSideOrExtra && breadName && breadName !== "No Bread") {
+        itemName = `${modifierState.item!.name} (${breadName})`;
+      }
       
       const exists = c.find((l) => 
         l.id === modifierState.item!.id && 
@@ -363,7 +386,7 @@ const updateToppingQuantity = (toppingId: string, quantity: number) => {
           name: itemName, 
           price: totalPrice, 
           qty: 1,
-          bread: breadName,
+          bread: modifierState.isSideOrExtra ? undefined : breadName,
           toppings: finalToppings
         }];
       }
@@ -469,11 +492,10 @@ const updateToppingQuantity = (toppingId: string, quantity: number) => {
           </div>
         </div>
 
-        {/* Cart Sidebar - Now shown as overlay when cart icon is clicked */}
+        {/* Cart Sidebar */}
         {showCart && (
           <div className="cart-overlay">
             <div className="cart-sidebar">
-              {/* Cart Bubble */}
               <div className="cart-card">
                 <div className="cart-header">
                   <h2 className="cart-title">Your Order</h2>
@@ -574,30 +596,32 @@ const updateToppingQuantity = (toppingId: string, quantity: number) => {
               </div>
 
               <div className="modifier-content">
-                {/* Bread Selection */}
-                <div className="modifier-section">
-                  <h3>Bread Selection *</h3>
-                  <div className="bread-options">
-                    {BREAD_OPTIONS.map(bread => (
-                      <label key={bread.id} className="bread-option">
-                        <input
-                          type="radio"
-                          name="bread"
-                          value={bread.id}
-                          checked={modifierState.selectedBread === bread.id}
-                          onChange={(e) => setModifierState(prev => ({
-                            ...prev,
-                            selectedBread: e.target.value
-                          }))}
-                        />
-                        <span className="bread-name">{bread.name}</span>
-                        <span className={`bread-price ${bread.price > 0 ? 'has-cost' : ''}`}>
-                          {bread.price > 0 ? `+${money(bread.price)}` : money(bread.price)}
-                        </span>
-                      </label>
-                    ))}
+                {/* Bread Selection - Only show for non-sides/extras */}
+                {!modifierState.isSideOrExtra && (
+                  <div className="modifier-section">
+                    <h3>Bread Selection *</h3>
+                    <div className="bread-options">
+                      {BREAD_OPTIONS.map(bread => (
+                        <label key={bread.id} className="bread-option">
+                          <input
+                            type="radio"
+                            name="bread"
+                            value={bread.id}
+                            checked={modifierState.selectedBread === bread.id}
+                            onChange={(e) => setModifierState(prev => ({
+                              ...prev,
+                              selectedBread: e.target.value
+                            }))}
+                          />
+                          <span className="bread-name">{bread.name}</span>
+                          <span className={`bread-price ${bread.price > 0 ? 'has-cost' : ''}`}>
+                            {bread.price > 0 ? `+${money(bread.price)}` : money(bread.price)}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Free Toppings */}
                 <div className="modifier-section">
@@ -688,35 +712,39 @@ const updateToppingQuantity = (toppingId: string, quantity: number) => {
                     <span>Base Price:</span>
                     <span>{money(modifierState.item.price)}</span>
                   </div>
+                  
+                  {/* Only show bread line for non-sides/extras */}
+                  {!modifierState.isSideOrExtra && (
+                    <div className="total-line">
+                      <span>Bread:</span>
+                      {(() => {
+                        const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
+                        const price = bread?.price ?? 0;
+                        return (
+                          <span className={price > 0 ? 'price-increase' : ''}>
+                            {price > 0 ? '+' : ''}
+                            {money(price)}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                  )}
+                  
                   <div className="total-line">
-  <span>Bread:</span>
-  {(() => {
-    const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
-    const price = bread?.price ?? 0;
-    return (
-      <span className={price > 0 ? 'price-increase' : ''}>
-        {price > 0 ? '+' : ''}
-        {money(price)}
-      </span>
-    );
-  })()}
-</div>
-
-<div className="total-line">
-  <span>Toppings:</span>
-  {(() => {
-    const toppingsTotal = modifierState.tempToppings.reduce(
-      (sum, t) => sum + t.price * t.quantity,
-      0
-    );
-    return (
-      <span className={toppingsTotal > 0 ? 'price-increase' : ''}>
-        {toppingsTotal > 0 ? '+' : ''}
-        {money(toppingsTotal)}
-      </span>
-    );
-  })()}
-</div>
+                    <span>Toppings:</span>
+                    {(() => {
+                      const toppingsTotal = modifierState.tempToppings.reduce(
+                        (sum, t) => sum + t.price * t.quantity,
+                        0
+                      );
+                      return (
+                        <span className={toppingsTotal > 0 ? 'price-increase' : ''}>
+                          {toppingsTotal > 0 ? '+' : ''}
+                          {money(toppingsTotal)}
+                        </span>
+                      );
+                    })()}
+                  </div>
 
                   <div className="total-line final">
                     <span>Total:</span>
@@ -734,7 +762,7 @@ const updateToppingQuantity = (toppingId: string, quantity: number) => {
                   <button 
                     className="confirm-btn" 
                     onClick={confirmModifiers}
-                    disabled={!modifierState.selectedBread}
+                    disabled={!modifierState.isSideOrExtra && !modifierState.selectedBread}
                   >
                     Confirm - {money(calculateModifierTotal())}
                   </button>
