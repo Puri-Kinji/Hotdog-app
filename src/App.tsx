@@ -90,7 +90,7 @@ const MENU: MenuItem[] = [
   { id: "double-vegan-burger", name: "Double Vegan Burger", price: 16.99, category: "Burgers & Sandwiches", badge: "Vegan", hasModifiers: true },
 
   // Sides & Extras
-  { id: "cheese", name: "Cheese (American, Cheddar)", price: 0.75, category: "Sides & Extras", hasModifiers: true },
+  { id: "cheese", name: "Cheese (American, Cheddar)", price: 1.00, category: "Sides & Extras", hasModifiers: true },
   { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
   { id: "beef-chili-scoop", name: "Beef Chili Scoop", price: 1.0, category: "Sides & Extras", hasModifiers: true },
   { id: "vegan-chili-scoop", name: "Vegan Chili Scoop", price: 2.49, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
