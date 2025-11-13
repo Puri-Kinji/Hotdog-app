@@ -76,6 +76,7 @@ const RESTAURANT = {
 };
 
 /* ---------------------------------- Menu Data ---------------------------------- */
+/* ---------------------------------- Menu Data ---------------------------------- */
 const MENU: MenuItem[] = [
   // Dogs & Links
   { id: "turkey-dog", name: "Turkey Dog", price: 4.99, category: "Dogs & Links", hasModifiers: true },
@@ -114,9 +115,14 @@ const MENU: MenuItem[] = [
   { id: "vegan-chili-vegan-cheese-fritos", name: "VEGAN CHILI VEGAN CHEESE FRITOS", price: 7.74, category: "Sides & Extras", badge: "Vegan", hasModifiers: true, specialModifiers: "fritos" },
   { id: "bag-of-chips", name: "BAG OF CHIPS", price: 1.00, category: "Sides & Extras", hasModifiers: true, specialModifiers: "chips" },
   { id: "jamaican-patties", name: "Jamaican Patties", price: 5.00, category: "Sides & Extras" },
+  
+  // New Side Items
+  { id: "side-beef-chili", name: "Side of Beef Chili", price: 1.49, category: "Sides & Extras" },
+  { id: "side-cheddar-cheese", name: "Side of Cheddar Cheese", price: 1.00, category: "Sides & Extras" },
+  { id: "side-vegan-chili", name: "Side of Vegan Chili", price: 2.49, category: "Sides & Extras", badge: "Vegan" },
 
   // Drinks
-  { id: "small-playas-punch", name: "PLAYAS PUNCH", price: 7.99, category: "Drinks" },
+  { id: "small-playas-punch", name: "PLAYAS PUNCH", price: 4.49, category: "Drinks" },
   { id: "large-playas-punch", name: "LARGE PLAYAS PUNCH", price: 5.49, category: "Drinks" },
   { id: "half-gallon-playas-punch", name: "1/2 GALLON PLAYAS PUNCH", price: 9.99, category: "Drinks" },
   { id: "playas-punch-special", name: "PLAYAS PUNCH SPECIAL - 2 Half Gallons", price: 17.99, category: "Drinks" },
@@ -136,7 +142,6 @@ const MENU: MenuItem[] = [
   { id: "bean-pie", name: "Bean Pie", price: 4.99, category: "Desserts" },
   { id: "sweet-potato-pie", name: "Sweet Potato Pie", price: 4.99, category: "Desserts" },
 ];
-
 /* ---------------------------------- Modifiers Data ---------------------------------- */
 const BREAD_OPTIONS: Topping[] = [
   { id: "no-bread", name: "No Bread", price: 0.00, category: "bread", isDefault: false },
@@ -171,7 +176,7 @@ const TOPPINGS: Topping[] = [
   { id: "cheddar", name: "Cheddar Cheese", price: 1.00, category: "paid" },
   { id: "american", name: "American Cheese", price: 1.00, category: "paid" },
   { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "paid" },
-  { id: "beef-chili", name: "Beef Chili Scoop", price: 1.00, category: "paid" },
+  { id: "beef-chili", name: "Beef Chili Scoop", price: 1.49, category: "paid" },
   { id: "vegan-chili", name: "Vegan Chili Scoop", price: 2.49, category: "paid" },
   { id: "pastrami", name: "Pastrami", price: 5.99, category: "paid" },
 ];
