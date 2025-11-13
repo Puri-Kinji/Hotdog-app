@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import "./index.css";
 import "./App.css";
 import logo from "./assets/Yellow + Black Logo_Earle_s on Crenshaw.png";
+import { BREAD_OPTIONS } from './path-to-your-constants';
+import { money } from './path-to-your-money-utility';
 
 /* ---------------------------------- Types ---------------------------------- */
 type MenuItem = {
