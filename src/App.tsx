@@ -108,7 +108,7 @@ const MENU: MenuItem[] = [
   { id: "vegan-chili-cheese-fritos", name: "VEGAN CHILI CHEESE FRITOS - Regular Cheese", price: 5.49, category: "Sides & Extras", hasModifiers: true },
   { id: "vegan-chili-vegan-cheese-fritos", name: "VEGAN CHILI VEGAN CHEESE FRITOS", price: 7.74, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
   { id: "bag-of-chips", name: "BAG OF CHIPS", price: 1.00, category: "Sides & Extras" },
-  
+
   // Drinks
   { id: "small-cup", name: "Small Cup (Lemonade, Playas Punch)", price: 3.99, category: "Drinks" },
   { id: "large-cup", name: "Large Cup (Lemonade, Playas Punch)", price: 4.99, category: "Drinks" },
@@ -751,4 +751,71 @@ export default function RestaurantApp() {
                       );
                       return (
                         <span className={toppingsTotal > 0 ? 'price-increase' : ''}>
-                          {toppingsTotal
+                          {toppingsTotal > 0 ? '+' : ''}
+                          {money(toppingsTotal)}
+                        </span>
+                      );
+                    })()}
+                  </div>
+
+                  <div className="total-line final">
+                    <span>Total:</span>
+                    <span>{money(calculateModifierTotal())}</span>
+                  </div>
+                </div>
+
+                <div className="modifier-actions">
+                  <button 
+                    className="cancel-btn" 
+                    onClick={cancelModifiers}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="confirm-btn" 
+                    onClick={confirmModifiers}
+                    disabled={!modifierState.isSideOrExtra && !modifierState.selectedBread}
+                  >
+                    Confirm - {money(calculateModifierTotal())}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+/* -------------------------------- Note Editor Component ------------------------------- */
+function NoteEditor({
+  initial,
+  onCancel,
+  onSave,
+}: {
+  initial: string;
+  onCancel: () => void;
+  onSave: (val: string) => void;
+}) {
+  const [val, setVal] = useState(initial);
+  return (
+    <div className="note-editor">
+      <textarea
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        rows={3}
+        placeholder="Add ketchup, extra onions, no pickles…"
+        className="note-input"
+      />
+      <div className="note-actions">
+        <button onClick={() => onSave(val)} className="btn primary">
+          Save note
+        </button>
+        <button onClick={onCancel} className="btn">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
