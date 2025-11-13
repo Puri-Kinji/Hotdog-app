@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import "./index.css";
 import "./App.css";
@@ -90,25 +89,11 @@ const MENU: MenuItem[] = [
   { id: "double-salmon-burger", name: "Double Salmon Burger", price: 13.99, category: "Burgers & Sandwiches", hasModifiers: true },
   { id: "double-vegan-burger", name: "Double Vegan Burger", price: 16.99, category: "Burgers & Sandwiches", badge: "Vegan", hasModifiers: true },
 
- // Sides & Extras
-{ id: "fries", name: "Fries", price: 5.49, category: "Sides & Extras", hasModifiers: true },
-{ id: "beef-chili-fries", name: "Beef Chili Fries", price: 6.99, category: "Sides & Extras", hasModifiers: true },
-{ id: "beef-chili-fries-cheese", name: "Beef Chili Fries w/Regular Cheese", price: 7.49, category: "Sides & Extras", hasModifiers: true },
-
-{ id: "vegan-chili-fries", name: "Vegan Chili Fries", price: 8.49, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
-{ id: "vegan-chili-fries-regular-cheese", name: "Vegan Chili Fries w/Regular Cheese", price: 8.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
-{ id: "vegan-chili-fries-vegan-cheese", name: "Vegan Chili Fries w/Vegan Cheese", price: 11.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
-
-{ id: "beef-chili-bowl-small", name: "Beef Chili Bowl Small", price: 4.49, category: "Sides & Extras", hasModifiers: true },
-{ id: "beef-chili-bowl-medium", name: "Beef Chili Bowl Medium", price: 6.49, category: "Sides & Extras", hasModifiers: true },
-{ id: "beef-chili-bowl-large", name: "Beef Chili Bowl Large", price: 8.49, category: "Sides & Extras", hasModifiers: true },
-
-{ id: "vegan-chili-bowl-small", name: "Vegan Chili Bowl Small", price: 7.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
-{ id: "vegan-chili-bowl-medium", name: "Vegan Chili Bowl Medium", price: 11.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
-{ id: "vegan-chili-bowl-large", name: "Vegan Chili Bowl Large", price: 15.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
-
-{ id: "jamaican-patty", name: "Jamaican Patty", price: 5.00, category: "Sides & Extras", hasModifiers: true },
-
+  // Sides & Extras
+  { id: "cheese", name: "Cheese (American, Cheddar)", price: 1.00, category: "Sides & Extras", hasModifiers: true },
+  { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
+  { id: "beef-chili-scoop", name: "Beef Chili Scoop", price: 1.0, category: "Sides & Extras", hasModifiers: true },
+  { id: "vegan-chili-scoop", name: "Vegan Chili Scoop", price: 2.49, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
 
   // Drinks
   { id: "small-cup", name: "Small Cup (Lemonade, Playas Punch)", price: 3.99, category: "Drinks" },
@@ -588,32 +573,31 @@ const updateToppingQuantity = (toppingId: string, quantity: number) => {
                 <button className="close-modifier" onClick={cancelModifiers}>×</button>
               </div>
 
-              {/* Bread Selection — only for Dogs & Burgers */}
-{["Dogs & Links", "Burgers & Sandwiches"].includes(modifierState.item.category) && (
-  <div className="modifier-section">
-    <h3>Bread Selection *</h3>
-    <div className="bread-options">
-      {BREAD_OPTIONS.map(bread => (
-        <label key={bread.id} className="bread-option">
-          <input
-            type="radio"
-            name="bread"
-            value={bread.id}
-            checked={modifierState.selectedBread === bread.id}
-            onChange={(e) => setModifierState(prev => ({
-              ...prev,
-              selectedBread: e.target.value
-            }))}  
-          />
-          <span className="bread-name">{bread.name}</span>
-          <span className={`bread-price ${bread.price > 0 ? 'has-cost' : ''}`}>
-            {bread.price > 0 ? `+${money(bread.price)}` : money(bread.price)}
-          </span>
-        </label>
-      ))}
-    </div>
-  </div>
-)}
+              <div className="modifier-content">
+                {/* Bread Selection */}
+                <div className="modifier-section">
+                  <h3>Bread Selection *</h3>
+                  <div className="bread-options">
+                    {BREAD_OPTIONS.map(bread => (
+                      <label key={bread.id} className="bread-option">
+                        <input
+                          type="radio"
+                          name="bread"
+                          value={bread.id}
+                          checked={modifierState.selectedBread === bread.id}
+                          onChange={(e) => setModifierState(prev => ({
+                            ...prev,
+                            selectedBread: e.target.value
+                          }))}
+                        />
+                        <span className="bread-name">{bread.name}</span>
+                        <span className={`bread-price ${bread.price > 0 ? 'has-cost' : ''}`}>
+                          {bread.price > 0 ? `+${money(bread.price)}` : money(bread.price)}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Free Toppings */}
                 <div className="modifier-section">
