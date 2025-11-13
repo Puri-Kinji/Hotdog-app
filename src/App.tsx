@@ -266,8 +266,8 @@ export default function RestaurantApp() {
     setShowCart(!showCart);
   }
 
-  // Add the missing ifiers function
-  const ifiers = () => {
+  // Add the missing cancelModifiers function
+  const cancelModifiers = () => {
     setModifierState({
       isOpen: false,
       item: null,
@@ -318,49 +318,49 @@ export default function RestaurantApp() {
     });
   };
 
-const confirmModifiers = () => {
-  if (!modifierState.item || !modifierState.selectedBread) return;
-  
-  const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
-  const breadName = bread?.name || "";
-  const breadPrice = bread?.price || 0;
-  
-  const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
-  
-  setCart((c) => {
-    const basePrice = modifierState.item!.price + breadPrice;
-    const toppingsTotal = finalToppings.reduce((sum, topping) => 
-      sum + (topping.price * topping.quantity), 0
-    );
-    const totalPrice = basePrice + toppingsTotal;
+  const confirmModifiers = () => {
+    if (!modifierState.item || !modifierState.selectedBread) return;
     
-    const itemName = `${modifierState.item!.name} (${breadName})`;
+    const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
+    const breadName = bread?.name || "";
+    const breadPrice = bread?.price || 0;
     
-    const exists = c.find((l) => 
-      l.id === modifierState.item!.id && 
-      l.bread === breadName &&
-      JSON.stringify(l.toppings) === JSON.stringify(finalToppings)
-    );
+    const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
     
-    if (exists) {
-      return c.map((l) => 
-        l.id === exists.id ? { ...l, qty: l.qty + 1 } : l
+    setCart((c) => {
+      const basePrice = modifierState.item!.price + breadPrice;
+      const toppingsTotal = finalToppings.reduce((sum, topping) => 
+        sum + (topping.price * topping.quantity), 0
       );
-    } else {
-      return [...c, { 
-        id: modifierState.item!.id, 
-        name: itemName, 
-        price: totalPrice, 
-        qty: 1,
-        bread: breadName,
-        toppings: finalToppings
-      }];
-    }
-  });
-  
-  cancelModifiers();
-};
-  
+      const totalPrice = basePrice + toppingsTotal;
+      
+      const itemName = `${modifierState.item!.name} (${breadName})`;
+      
+      const exists = c.find((l) => 
+        l.id === modifierState.item!.id && 
+        l.bread === breadName &&
+        JSON.stringify(l.toppings) === JSON.stringify(finalToppings)
+      );
+      
+      if (exists) {
+        return c.map((l) => 
+          l.id === exists.id ? { ...l, qty: l.qty + 1 } : l
+        );
+      } else {
+        return [...c, { 
+          id: modifierState.item!.id, 
+          name: itemName, 
+          price: totalPrice, 
+          qty: 1,
+          bread: breadName,
+          toppings: finalToppings
+        }];
+      }
+    });
+    
+    cancelModifiers();
+  };
+
   return (
     <div className="app">
       {/* Header */}
