@@ -308,66 +308,54 @@ export default function RestaurantApp() {
   };
 
   const confirmModifiers = () => {
-    if (!modifierState.item || !modifierState.selectedBread) return;
+  if (!modifierState.item || !modifierState.selectedBread) return;
+  
+  const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
+  const breadName = bread?.name || "";
+  const breadPrice = bread?.price || 0;
+  
+  const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
+  
+  setCart((c) => {
+    // Use optional chaining and nullish coalescing for safety
+    const basePrice = (modifierState.item?.price || 0) + breadPrice;
+    const toppingsTotal = finalToppings.reduce((sum, topping) => 
+      sum + (topping.price * topping.quantity), 0
+    );
+    const totalPrice = basePrice + toppingsTotal;
     
-    const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
-    const breadName = bread?.name || "";
-    const breadPrice = bread?.price || 0;
+    const itemName = `${modifierState.item?.name || 'Item'} (${breadName})`;
     
-    const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
+    const exists = c.find((l) => 
+      l.id === modifierState.item?.id && 
+      l.bread === breadName &&
+      JSON.stringify(l.toppings) === JSON.stringify(finalToppings)
+    );
     
-    setCart((c) => {
-      const basePrice = modifierState.item!.price + breadPrice;
-      const toppingsTotal = finalToppings.reduce((sum, topping) => 
-        sum + (topping.price * topping.quantity), 0
+    if (exists) {
+      return c.map((l) => 
+        l.id === exists.id ? { ...l, qty: l.qty + 1 } : l
       );
-      const totalPrice = basePrice + toppingsTotal;
-      
-      const itemName = `${modifierState.item!.name} (${breadName})`;
-      
-      const exists = c.find((l) => 
-        l.id === modifierState.item!.id && 
-        l.bread === breadName &&
-        JSON.stringify(l.toppings) === JSON.stringify(finalToppings)
-      );
-      
-      if (exists) {
-        return c.map((l) => 
-          l.id === exists.id ? { ...l, qty: l.qty + 1 } : l
-        );
-      } else {
-        return [...c, { 
-          id: modifierState.item!.id, 
-          name: itemName, 
-          price: totalPrice, 
-          qty: 1,
-          bread: breadName,
-          toppings: finalToppings
-        }];
-      }
-    });
-    
-    setModifierState({
-      isOpen: false,
-      item: null,
-      selectedBread: "",
-      toppings: [],
-      tempToppings: []
-    });
-  };
-
-  const cancelModifiers = () => {
-    setModifierState({
-      isOpen: false,
-      item: null,
-      selectedBread: "",
-      toppings: [],
-      tempToppings: []
-    });
-  };
-
-  return (
-    <div className="app">
+    } else {
+      return [...c, { 
+        id: modifierState.item?.id || 'unknown', 
+        name: itemName, 
+        price: totalPrice, 
+        qty: 1,
+        bread: breadName,
+        toppings: finalToppings
+      }];
+    }
+  });
+  
+  setModifierState({
+    isOpen: false,
+    item: null,
+    selectedBread: "",
+    toppings: [],
+    tempToppings: []
+  });
+};
 
       {/* Header */}
       <header className="header">
