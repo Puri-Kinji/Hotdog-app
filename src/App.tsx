@@ -266,8 +266,8 @@ export default function RestaurantApp() {
     setShowCart(!showCart);
   }
 
-  // Add the missing cancelModifiers function
-  const cancelModifiers = () => {
+  // Add the missing ifiers function
+  const ifiers = () => {
     setModifierState({
       isOpen: false,
       item: null,
@@ -319,29 +319,25 @@ export default function RestaurantApp() {
   };
 
 const confirmModifiers = () => {
-  // Store both values in variables for proper type narrowing
-  const currentItem = modifierState.item;
-  const selectedBread = modifierState.selectedBread;
+  if (!modifierState.item || !modifierState.selectedBread) return;
   
-  if (!currentItem || !selectedBread) return;
-  
-  const bread = BREAD_OPTIONS.find(b => b.id === selectedBread);
+  const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
   const breadName = bread?.name || "";
   const breadPrice = bread?.price || 0;
   
   const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
   
   setCart((c) => {
-    const basePrice = currentItem.price + breadPrice;
+    const basePrice = modifierState.item!.price + breadPrice;
     const toppingsTotal = finalToppings.reduce((sum, topping) => 
       sum + (topping.price * topping.quantity), 0
     );
     const totalPrice = basePrice + toppingsTotal;
     
-    const itemName = `${currentItem.name} (${breadName})`;
+    const itemName = `${modifierState.item!.name} (${breadName})`;
     
     const exists = c.find((l) => 
-      l.id === currentItem.id && 
+      l.id === modifierState.item!.id && 
       l.bread === breadName &&
       JSON.stringify(l.toppings) === JSON.stringify(finalToppings)
     );
@@ -352,7 +348,7 @@ const confirmModifiers = () => {
       );
     } else {
       return [...c, { 
-        id: currentItem.id, 
+        id: modifierState.item!.id, 
         name: itemName, 
         price: totalPrice, 
         qty: 1,
@@ -363,7 +359,8 @@ const confirmModifiers = () => {
   });
   
   cancelModifiers();
-};  // <-- Only one closing brace here
+};
+  
   return (
     <div className="app">
       {/* Header */}
