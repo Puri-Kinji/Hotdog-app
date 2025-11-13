@@ -17,7 +17,7 @@ body {
 }
 
 .header {
-  background: #B52828; /* Earle's Red */
+  background: #CFB857; /* Yellow */
   border-bottom: 1px solid #e9ecef;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -125,7 +125,7 @@ body {
   position: absolute;
   top: -5px;
   right: -5px;
-  background: #CFB857; /* Yellow */
+  background: #B52828; /* Earle's Red */
   color: white;
   border-radius: 50%;
   width: 20px;
@@ -309,7 +309,7 @@ body {
 
 .add-btn {
   padding: 0.75rem 1.5rem;
-  background: #007bff;
+  background: #B52828; /* Earle's Red */
   color: white;
   border: none;
   border-radius: 6px;
