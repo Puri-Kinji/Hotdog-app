@@ -360,7 +360,6 @@ const confirmModifiers = () => {
         toppings: finalToppings
       }];
     }
-  });
   
   cancelModifiers();
 };
