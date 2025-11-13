@@ -968,3 +968,65 @@ body {
     width: 100%;
   }
 }
+/* Chip Options Styling */
+.chip-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.chip-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.chip-option:hover {
+  background-color: #f8f9fa;
+  border-color: #007bff;
+}
+
+.chip-option input[type="radio"] {
+  margin: 0;
+}
+
+.chip-name {
+  font-weight: 500;
+  color: #333;
+}
+
+/* Double Bag Option Styling */
+.double-bag-option {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.double-bag-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.double-bag-label:hover {
+  background-color: #f8f9fa;
+  border-color: #007bff;
+}
+
+.double-bag-name {
+  font-weight: 500;
+  color: #333;
+}
