@@ -560,169 +560,173 @@ export default function RestaurantApp() {
           </div>
         )}
 
-      {/* Modifier Modal */}
-{modifierState.isOpen && modifierState.item && (
-  <div className="modifier-overlay">
-    <div className="modifier-modal">
-      <div className="modifier-header">
-        <h2>Customize {modifierState.item.name}</h2>
-        <button className="close-modifier" onClick={cancelModifiers}>×</button>
-      </div>
+        {/* Modifier Modal */}
+        {modifierState.isOpen && modifierState.item && (
+          <div className="modifier-overlay">
+            <div className="modifier-modal">
+              <div className="modifier-header">
+                <h2>Customize {modifierState.item.name}</h2>
+                <button className="close-modifier" onClick={cancelModifiers}>×</button>
+              </div>
 
-      <div className="modifier-content">
-        {/* Bread Selection */}
-        <div className="modifier-section">
-          <h3>Bread Selection *</h3>
-          <div className="bread-options">
-            {BREAD_OPTIONS.map(bread => (
-              <label key={bread.id} className="bread-option">
-                <input
-                  type="radio"
-                  name="bread"
-                  value={bread.id}
-                  checked={modifierState.selectedBread === bread.id}
-                  onChange={(e) => setModifierState(prev => ({
-                    ...prev,
-                    selectedBread: e.target.value
-                  }))}
-                />
-                <span className="bread-name">{bread.name}</span>
-                <span className={`bread-price ${bread.price > 0 ? 'has-cost' : ''}`}>
-                  {bread.price > 0 ? `+${money(bread.price)}` : money(bread.price)}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Free Toppings */}
-        <div className="modifier-section">
-          <h3>Free Toppings</h3>
-          <div className="toppings-grid">
-            {TOPPINGS.filter(t => t.category === "free").map(topping => {
-              const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
-              const quantity = currentTopping?.quantity || 0;
-              
-              return (
-                <div key={topping.id} className="topping-item">
-                  <div className="topping-info">
-                    <span className="topping-name">{topping.name}</span>
-                    <span className="topping-price">{money(topping.price)}</span>
-                  </div>
-                  <div className="topping-controls">
-                    <button
-                      className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
-                      onClick={() => updateToppingQuantity(topping.id, 0)}
-                    >
-                      None
-                    </button>
-                    <button
-                      className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
-                      onClick={() => updateToppingQuantity(topping.id, 1)}
-                    >
-                      Normal
-                    </button>
-                    <button
-                      className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
-                      onClick={() => updateToppingQuantity(topping.id, 2)}
-                    >
-                      Extra
-                    </button>
+              <div className="modifier-content">
+                {/* Bread Selection */}
+                <div className="modifier-section">
+                  <h3>Bread Selection *</h3>
+                  <div className="bread-options">
+                    {BREAD_OPTIONS.map(bread => (
+                      <label key={bread.id} className="bread-option">
+                        <input
+                          type="radio"
+                          name="bread"
+                          value={bread.id}
+                          checked={modifierState.selectedBread === bread.id}
+                          onChange={(e) => setModifierState(prev => ({
+                            ...prev,
+                            selectedBread: e.target.value
+                          }))}
+                        />
+                        <span className="bread-name">{bread.name}</span>
+                        <span className={`bread-price ${bread.price > 0 ? 'has-cost' : ''}`}>
+                          {bread.price > 0 ? `+${money(bread.price)}` : money(bread.price)}
+                        </span>
+                      </label>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Paid Toppings */}
-        <div className="modifier-section">
-          <h3>Premium Toppings</h3>
-          <div className="toppings-grid">
-            {TOPPINGS.filter(t => t.category === "paid").map(topping => {
-              const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
-              const quantity = currentTopping?.quantity || 0;
-              const totalCost = topping.price * quantity;
-              
-              return (
-                <div key={topping.id} className="topping-item paid">
-                  <div className="topping-info">
-                    <span className="topping-name">{topping.name}</span>
-                    <span className="topping-price has-cost">
-                      +{money(topping.price)} {quantity > 1 ? `× ${quantity} = +${money(totalCost)}` : ''}
+                {/* Free Toppings */}
+                <div className="modifier-section">
+                  <h3>Free Toppings</h3>
+                  <div className="toppings-grid">
+                    {TOPPINGS.filter(t => t.category === "free").map(topping => {
+                      const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
+                      const quantity = currentTopping?.quantity || 0;
+                      
+                      return (
+                        <div key={topping.id} className="topping-item">
+                          <div className="topping-info">
+                            <span className="topping-name">{topping.name}</span>
+                            <span className="topping-price">{money(topping.price)}</span>
+                          </div>
+                          <div className="topping-controls">
+                            <button
+                              className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 0)}
+                            >
+                              None
+                            </button>
+                            <button
+                              className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 1)}
+                            >
+                              Normal
+                            </button>
+                            <button
+                              className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 2)}
+                            >
+                              Extra
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Paid Toppings */}
+                <div className="modifier-section">
+                  <h3>Premium Toppings</h3>
+                  <div className="toppings-grid">
+                    {TOPPINGS.filter(t => t.category === "paid").map(topping => {
+                      const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
+                      const quantity = currentTopping?.quantity || 0;
+                      const totalCost = topping.price * quantity;
+                      
+                      return (
+                        <div key={topping.id} className="topping-item paid">
+                          <div className="topping-info">
+                            <span className="topping-name">{topping.name}</span>
+                            <span className="topping-price has-cost">
+                              +{money(topping.price)} {quantity > 1 ? `× ${quantity} = +${money(totalCost)}` : ''}
+                            </span>
+                          </div>
+                          <div className="topping-controls">
+                            <button
+                              className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 0)}
+                            >
+                              None
+                            </button>
+                            <button
+                              className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 1)}
+                            >
+                              Normal
+                            </button>
+                            <button
+                              className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
+                              onClick={() => updateToppingQuantity(topping.id, 2)}
+                            >
+                              Extra
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Total and Actions */}
+                <div className="modifier-total">
+                  <div className="total-line">
+                    <span>Base Price:</span>
+                    <span>{money(modifierState.item.price)}</span>
+                  </div>
+                  <div className="total-line">
+                    <span>Bread:</span>
+                    <span className={BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price > 0 ? 'price-increase' : ''}>
+                      {BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price > 0 ? '+' : ''}
+                      {money(BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0)}
                     </span>
                   </div>
-                  <div className="topping-controls">
-                    <button
-                      className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
-                      onClick={() => updateToppingQuantity(topping.id, 0)}
-                    >
-                      None
-                    </button>
-                    <button
-                      className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
-                      onClick={() => updateToppingQuantity(topping.id, 1)}
-                    >
-                      Normal
-                    </button>
-                    <button
-                      className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
-                      onClick={() => updateToppingQuantity(topping.id, 2)}
-                    >
-                      Extra
-                    </button>
+                  <div className="total-line">
+                    <span>Toppings:</span>
+                    <span className={modifierState.tempToppings.reduce((sum, t) => sum + (t.price * t.quantity), 0) > 0 ? 'price-increase' : ''}>
+                      {modifierState.tempToppings.reduce((sum, t) => sum + (t.price * t.quantity), 0) > 0 ? '+' : ''}
+                      {money(modifierState.tempToppings.reduce((sum, t) => sum + (t.price * t.quantity), 0))}
+                    </span>
+                  </div>
+                  <div className="total-line final">
+                    <span>Total:</span>
+                    <span>{money(calculateModifierTotal())}</span>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Total and Actions */}
-        <div className="modifier-total">
-          <div className="total-line">
-            <span>Base Price:</span>
-            <span>{money(modifierState.item.price)}</span>
+                <div className="modifier-actions">
+                  <button 
+                    className="cancel-btn" 
+                    onClick={cancelModifiers}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="confirm-btn" 
+                    onClick={confirmModifiers}
+                    disabled={!modifierState.selectedBread}
+                  >
+                    Confirm - {money(calculateModifierTotal())}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="total-line">
-            <span>Bread:</span>
-            <span className={BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price > 0 ? 'price-increase' : ''}>
-              {BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price > 0 ? '+' : ''}
-              {money(BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0)}
-            </span>
-          </div>
-          <div className="total-line">
-            <span>Toppings:</span>
-            <span className={modifierState.tempToppings.reduce((sum, t) => sum + (t.price * t.quantity), 0) > 0 ? 'price-increase' : ''}>
-              {modifierState.tempToppings.reduce((sum, t) => sum + (t.price * t.quantity), 0) > 0 ? '+' : ''}
-              {money(modifierState.tempToppings.reduce((sum, t) => sum + (t.price * t.quantity), 0))}
-            </span>
-          </div>
-          <div className="total-line final">
-            <span>Total:</span>
-            <span>{money(calculateModifierTotal())}</span>
-          </div>
-        </div>
-
-        <div className="modifier-actions">
-          <button 
-            className="cancel-btn" 
-            onClick={cancelModifiers}
-          >
-            Cancel
-          </button>
-          <button 
-            className="confirm-btn" 
-            onClick={confirmModifiers}
-            disabled={!modifierState.selectedBread}
-          >
-            Confirm - {money(calculateModifierTotal())}
-          </button>
-        </div>
-      </div>
+        )}
+      </main>
     </div>
-  </div>
-)}
+  );
+}
 
 /* -------------------------------- Note Editor Component ------------------------------- */
 function NoteEditor({
