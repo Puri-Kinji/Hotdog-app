@@ -15,7 +15,7 @@ type MenuItem = {
     | "Drinks"
     | "Desserts";
   desc?: string;
-  badge?: "Vegan" | "Spicy" | "Kosher" | "New" | "Popula";
+  badge?: "Vegan" | "Spicy" | "Kosher" | "New" | "Popular";
   hasModifiers?: boolean;
   specialModifiers?: "fritos" | "chips";
 };
