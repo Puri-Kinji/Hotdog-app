@@ -319,11 +319,13 @@ export default function RestaurantApp() {
   };
 
 const confirmModifiers = () => {
-  // Store the item in a variable so TypeScript knows it's not null after the check
+  // Store both values in variables for proper type narrowing
   const currentItem = modifierState.item;
-  if (!currentItem || !modifierState.selectedBread) return;
+  const selectedBread = modifierState.selectedBread;
   
-  const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
+  if (!currentItem || !selectedBread) return;
+  
+  const bread = BREAD_OPTIONS.find(b => b.id === selectedBread);
   const breadName = bread?.name || "";
   const breadPrice = bread?.price || 0;
   
@@ -361,6 +363,7 @@ const confirmModifiers = () => {
   });
   
   cancelModifiers();
+};
 };
 
   return (
