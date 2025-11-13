@@ -276,46 +276,58 @@ export default function RestaurantApp() {
     });
   };
 
-  // Modifier functions
-  const updateToppingQuantity = (toppingId: string, quantity: number) => {
-    setModifierState(prev => {
-      const existingTopping = prev.tempToppings.find(t => t.id === toppingId);
-      
-      if (existingTopping) {
-        if (quantity === 0) {
-          // Remove topping if quantity is 0
-          return {
-            ...prev,
-            tempToppings: prev.tempToppings.filter(t => t.id !== toppingId)
-          };
-        } else {
-          // Update quantity
-          return {
-            ...prev,
-            tempToppings: prev.tempToppings.map(t => 
-              t.id === toppingId ? { ...t, quantity } : t
-            )
-          };
-        }
-      } else if (quantity > 0) {
-        // Add new topping
-        const topping = TOPPINGS.find(t => t.id === toppingId);
-        if (topping) {
-          return {
-            ...prev,
-            tempToppings: [...prev.tempToppings, {
-              id: topping.id,
-              name: topping.name,
-              quantity,
-              price: topping.price
-            }]
-          };
-        }
-      }
-      
+// Modifier functions
+const updateToppingQuantity = (toppingId: string, quantity: number) => {
+  setModifierState(prev => {
+    const existing = prev.tempToppings.find(t => t.id === toppingId);
+
+    // Count each topping as 1, even if extra
+    const selectedCount = prev.tempToppings.filter(t => t.quantity > 0).length;
+
+    // --- Remove topping ---
+    if (quantity === 0) {
+      return {
+        ...prev,
+        tempToppings: prev.tempToppings.filter(t => t.id !== toppingId)
+      };
+    }
+
+    // --- Already selected (Normal → Extra allowed) ---
+    if (existing) {
+      return {
+        ...prev,
+        tempToppings: prev.tempToppings.map(t =>
+          t.id === toppingId ? { ...t, quantity } : t
+        )
+      };
+    }
+
+    // --- NEW topping added ---
+    if (selectedCount >= 6) {
+      alert("You can choose up to 6 toppings total.");
       return prev;
-    });
-  };
+    }
+
+    const topping = TOPPINGS.find(t => t.id === toppingId);
+    if (topping) {
+      return {
+        ...prev,
+        tempToppings: [
+          ...prev.tempToppings,
+          {
+            id: topping.id,
+            name: topping.name,
+            quantity,
+            price: topping.price
+          }
+        ]
+      };
+    }
+
+    return prev;
+  });
+};
+
 
   const confirmModifiers = () => {
     if (!modifierState.item || !modifierState.selectedBread) return;
