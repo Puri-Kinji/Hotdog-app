@@ -76,7 +76,6 @@ const RESTAURANT = {
 };
 
 /* ---------------------------------- Menu Data ---------------------------------- */
-/* ---------------------------------- Menu Data ---------------------------------- */
 const MENU: MenuItem[] = [
   // Dogs & Links
   { id: "turkey-dog", name: "Turkey Dog", price: 4.99, category: "Dogs & Links", hasModifiers: true },
@@ -116,7 +115,7 @@ const MENU: MenuItem[] = [
   { id: "bag-of-chips", name: "BAG OF CHIPS", price: 1.00, category: "Sides & Extras", hasModifiers: true, specialModifiers: "chips" },
   { id: "jamaican-patties", name: "Jamaican Patties", price: 5.00, category: "Sides & Extras" },
 
-  // Drinks - FIXED: This section was missing proper structure
+  // Drinks
   { id: "small-playas-punch", name: "PLAYAS PUNCH", price: 7.99, category: "Drinks" },
   { id: "large-playas-punch", name: "LARGE PLAYAS PUNCH", price: 5.49, category: "Drinks" },
   { id: "half-gallon-playas-punch", name: "1/2 GALLON PLAYAS PUNCH", price: 9.99, category: "Drinks" },
@@ -257,6 +256,19 @@ export default function RestaurantApp() {
     return modifierState.item.price + breadPrice + toppingsTotal + doubleBaggedCharge;
   };
 
+  // Get topping limit based on item category
+  const getToppingLimit = () => {
+    if (!modifierState.item) return 6; // default
+    
+    if (modifierState.item.category === "Dogs & Links") {
+      return 5;
+    } else if (modifierState.item.category === "Burgers & Sandwiches") {
+      return 6;
+    }
+    
+    return 6; // default for other categories
+  };
+
   function addToCart(item: MenuItem) {
     if (item.hasModifiers || item.specialModifiers) {
       // Check if it's a Sides & Extras item
@@ -331,9 +343,19 @@ export default function RestaurantApp() {
   const updateToppingQuantity = (toppingId: string, quantity: number) => {
     setModifierState(prev => {
       const existing = prev.tempToppings.find(t => t.id === toppingId);
+      const topping = TOPPINGS.find(t => t.id === toppingId);
+      
+      if (!topping) return prev;
 
-      // Count each topping as 1, even if extra
-      const selectedCount = prev.tempToppings.filter(t => t.quantity > 0).length;
+      // Count only FREE toppings for the limit (exclude premium/paid toppings)
+      const freeToppingsCount = prev.tempToppings
+        .filter(t => {
+          const toppingData = TOPPINGS.find(td => td.id === t.id);
+          return toppingData?.category === "free" && t.quantity > 0;
+        })
+        .length;
+
+      const toppingLimit = getToppingLimit();
 
       // --- Remove topping ---
       if (quantity === 0) {
@@ -354,28 +376,24 @@ export default function RestaurantApp() {
       }
 
       // --- NEW topping added ---
-      if (selectedCount >= 6) {
-        alert("You can choose up to 6 toppings total.");
+      // Only apply limit to FREE toppings
+      if (topping.category === "free" && freeToppingsCount >= toppingLimit) {
+        alert(`You can choose up to ${toppingLimit} free toppings total. Premium toppings don't count toward this limit.`);
         return prev;
       }
 
-      const topping = TOPPINGS.find(t => t.id === toppingId);
-      if (topping) {
-        return {
-          ...prev,
-          tempToppings: [
-            ...prev.tempToppings,
-            {
-              id: topping.id,
-              name: topping.name,
-              quantity,
-              price: topping.price
-            }
-          ]
-        };
-      }
-
-      return prev;
+      return {
+        ...prev,
+        tempToppings: [
+          ...prev.tempToppings,
+          {
+            id: topping.id,
+            name: topping.name,
+            quantity,
+            price: topping.price
+          }
+        ]
+      };
     });
   };
 
@@ -441,6 +459,16 @@ export default function RestaurantApp() {
     });
     
     cancelModifiers();
+  };
+
+  // Get current free topping count for display
+  const getCurrentFreeToppingCount = () => {
+    return modifierState.tempToppings
+      .filter(t => {
+        const toppingData = TOPPINGS.find(td => td.id === t.id);
+        return toppingData?.category === "free" && t.quantity > 0;
+      })
+      .length;
   };
 
   return (
@@ -785,7 +813,12 @@ export default function RestaurantApp() {
                 {/* Free Toppings - Only show for items without special modifiers */}
                 {!modifierState.item.specialModifiers && (
                   <div className="modifier-section">
-                    <h3>Free Toppings</h3>
+                    <h3>
+                      Free Toppings 
+                      <span className="topping-limit">
+                        ({getCurrentFreeToppingCount()}/{getToppingLimit()} selected)
+                      </span>
+                    </h3>
                     <div className="toppings-grid">
                       {TOPPINGS.filter(t => t.category === "free").map(topping => {
                         const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
@@ -828,6 +861,7 @@ export default function RestaurantApp() {
                 {!modifierState.item.specialModifiers && (
                   <div className="modifier-section">
                     <h3>Premium Toppings</h3>
+                    <p className="premium-note">Premium toppings don't count toward your free topping limit</p>
                     <div className="toppings-grid">
                       {TOPPINGS.filter(t => t.category === "paid").map(topping => {
                         const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
