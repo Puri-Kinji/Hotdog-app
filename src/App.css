@@ -167,34 +167,40 @@ body {
   display: none;
 }
 
+/* DEFAULT STATE */
 .category-tab {
   padding: 0.75rem 1.5rem;
-  border: 1px solid #e9ecef;
-  background: white;
+  border: 2px solid #B52828; /* red border */
+  background: #B52828;       /* red bubble */
   border-radius: 25px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s;
   font-size: 0.9rem;
-  color: #495057;
+  color: white;              /* white text */
 }
 
+/* HOVER STATE */
 .category-tab:hover {
-  border-color: #007bff;
-  color: #007bff;
+  background: #28a745;       /* green bubble */
+  border-color: #28a745;     /* green border */
+  color: white;              /* keep white text */
 }
 
+/* ACTIVE / SELECTED */
 .category-tab.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+  background: #CFB857;       /* yellow bubble */
+  border-color: #CFB857;     /* yellow border */
+  color: white;              /* white text */
 }
 
 .item-count {
   font-size: 0.8rem;
-  opacity: 0.8;
+  opacity: 0.9;
   margin-left: 0.25rem;
+  color: inherit;            /* stays white */
 }
+
 
 /* Menu Sections */
 .menu-sections {
