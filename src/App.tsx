@@ -77,9 +77,9 @@ const MENU: MenuItem[] = [
   { id: "beef-dog", name: "Beef Dog (Kosher)", price: 6.49, category: "Dogs & Links", badge: "Kosher", hasModifiers: true },
   { id: "beef-jumbo", name: "Beef Jumbo (Kosher)", price: 7.99, category: "Dogs & Links", badge: "Kosher", hasModifiers: true },
   { id: "spicy-beef-link", name: "Spicy Beef Link", price: 9.49, category: "Dogs & Links", badge: "Spicy", hasModifiers: true },
-  { id: "chicken-link", name: "Chicken Link (Pork Casing)", price: 9.49, category: "Dogs & Links", hasModifiers: true },
+  { id: "chicken-link", name: "Chicken Link (Pork Casing)", price: 9.49, category: "Dogs & Links", badge: "Spicy", hasModifiers: true },
   { id: "vegan-dog", name: "Vegan Dog", price: 7.99, category: "Dogs & Links", badge: "Vegan", hasModifiers: true },
-  { id: "vegan-link", name: "Vegan Link", price: 9.49, category: "Dogs & Links", badge: "Vegan", hasModifiers: true },
+  { id: "vegan-link", name: "Vegan Link", price: 9.49, category: "Dogs & Links", badge: "Vegan", badge: "Spicy", hasModifiers: true },
   { id: "pastrami-dog", name: "Pastrami Dog", price: 9.99, category: "Dogs & Links", hasModifiers: true },
 
   // Burgers & Sandwiches
