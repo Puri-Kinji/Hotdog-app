@@ -109,10 +109,15 @@ const MENU: MenuItem[] = [
   { id: "vegan-chili-vegan-cheese-fritos", name: "VEGAN CHILI VEGAN CHEESE FRITOS", price: 7.74, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
   { id: "bag-of-chips", name: "BAG OF CHIPS", price: 1.00, category: "Sides & Extras" },
 
-  // Drinks
-  { id: "small-cup", name: "Small Cup (Lemonade, Playas Punch)", price: 3.99, category: "Drinks" },
-  { id: "large-cup", name: "Large Cup (Lemonade, Playas Punch)", price: 4.99, category: "Drinks" },
-  { id: "soda-can", name: "Soda Can", price: 2.25, category: "Drinks" },
+ // Drinks
+{ id: "small-playas-punch", name: "SMALL PLAYAS PUNCH", price: 4.49, category: "Drinks" },
+{ id: "large-playas-punch", name: "LARGE PLAYAS PUNCH", price: 5.49, category: "Drinks" },
+{ id: "half-gallon-playas-punch", name: "1/2 GALLON PLAYAS PUNCH", price: 9.99, category: "Drinks" },
+{ id: "playas-punch-special", name: "PLAYAS PUNCH SPECIAL - 2 Half Gallons", price: 17.99, category: "Drinks" },
+{ id: "ginger-beer", name: "GINGER BEER", price: 3.79, category: "Drinks" },
+{ id: "coconut-water", name: "COCONUT WATER", price: 5.49, category: "Drinks" },
+{ id: "bottled-water", name: "BOTTLED WATER", price: 1.49, category: "Drinks" },
+{ id: "honey-punch", name: "HONEY PUNCH", price: 7.99, category: "Drinks" },
 
   // Desserts
   { id: "cakes", name: "Cakes", price: 8.49, category: "Desserts" },
