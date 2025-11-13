@@ -91,11 +91,23 @@ const MENU: MenuItem[] = [
   { id: "double-salmon-burger", name: "Double Salmon Burger", price: 13.99, category: "Burgers & Sandwiches", hasModifiers: true },
   { id: "double-vegan-burger", name: "Double Vegan Burger", price: 16.99, category: "Burgers & Sandwiches", badge: "Vegan", hasModifiers: true },
 
-  // Sides & Extras
-  { id: "cheese", name: "Cheese (American, Cheddar)", price: 1.00, category: "Sides & Extras", hasModifiers: true },
-  { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
-  { id: "beef-chili-scoop", name: "Beef Chili Scoop", price: 1.0, category: "Sides & Extras", hasModifiers: true },
-  { id: "vegan-chili-scoop", name: "Vegan Chili Scoop", price: 2.49, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
+  // Sides & Extras - Updated items
+  { id: "french-fries", name: "FRENCH FRIES", price: 5.49, category: "Sides & Extras", hasModifiers: true },
+  { id: "beef-chili-fries", name: "BEEF CHILI FRIES", price: 6.99, category: "Sides & Extras", hasModifiers: true },
+  { id: "beef-chili-cheese-fries", name: "BEEF CHILI CHEESE FRIES", price: 7.49, category: "Sides & Extras", hasModifiers: true },
+  { id: "vegan-chili-fries", name: "VEGAN CHILI FRIES", price: 8.49, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
+  { id: "vegan-chili-reg-cheese-fries", name: "VEGAN CHILI REG CHEESE FRIES", price: 8.99, category: "Sides & Extras", hasModifiers: true },
+  { id: "vegan-chili-vegan-cheese-fries", name: "VEGAN CHILI VEGAN CHEESE FRIES", price: 11.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
+  { id: "small-vegan-chili-bowl", name: "SMALL VEGAN CHILI BOWL", price: 7.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
+  { id: "medium-vegan-chili-bowl", name: "MEDIUM VEGAN CHILI BOWL", price: 11.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
+  { id: "large-vegan-chili-bowl", name: "LARGE VEGAN CHILI BOWL", price: 15.99, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
+  { id: "small-beef-chili-bowl", name: "SMALL BEEF CHILI BOWL", price: 4.49, category: "Sides & Extras", hasModifiers: true },
+  { id: "medium-beef-chili-bowl", name: "MEDIUM BEEF CHILI BOWL", price: 6.49, category: "Sides & Extras", hasModifiers: true },
+  { id: "large-beef-chili-bowl", name: "LARGE BEEF CHILI BOWL", price: 8.49, category: "Sides & Extras", hasModifiers: true },
+  { id: "beef-chili-cheese-fritos", name: "BEEF CHILI CHEESE FRITOS", price: 3.49, category: "Sides & Extras", hasModifiers: true },
+  { id: "vegan-chili-cheese-fritos", name: "VEGAN CHILI CHEESE FRITOS - Regular Cheese", price: 5.49, category: "Sides & Extras", hasModifiers: true },
+  { id: "vegan-chili-vegan-cheese-fritos", name: "VEGAN CHILI VEGAN CHEESE FRITOS", price: 7.74, category: "Sides & Extras", badge: "Vegan", hasModifiers: true },
+  { id: "bag-of-chips", name: "BAG OF CHIPS", price: 1.00, category: "Sides & Extras" },
 
   // Drinks
   { id: "small-cup", name: "Small Cup (Lemonade, Playas Punch)", price: 3.99, category: "Drinks" },
@@ -739,71 +751,4 @@ export default function RestaurantApp() {
                       );
                       return (
                         <span className={toppingsTotal > 0 ? 'price-increase' : ''}>
-                          {toppingsTotal > 0 ? '+' : ''}
-                          {money(toppingsTotal)}
-                        </span>
-                      );
-                    })()}
-                  </div>
-
-                  <div className="total-line final">
-                    <span>Total:</span>
-                    <span>{money(calculateModifierTotal())}</span>
-                  </div>
-                </div>
-
-                <div className="modifier-actions">
-                  <button 
-                    className="cancel-btn" 
-                    onClick={cancelModifiers}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    className="confirm-btn" 
-                    onClick={confirmModifiers}
-                    disabled={!modifierState.isSideOrExtra && !modifierState.selectedBread}
-                  >
-                    Confirm - {money(calculateModifierTotal())}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
-  );
-}
-
-/* -------------------------------- Note Editor Component ------------------------------- */
-function NoteEditor({
-  initial,
-  onCancel,
-  onSave,
-}: {
-  initial: string;
-  onCancel: () => void;
-  onSave: (val: string) => void;
-}) {
-  const [val, setVal] = useState(initial);
-  return (
-    <div className="note-editor">
-      <textarea
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-        rows={3}
-        placeholder="Add ketchup, extra onions, no pickles…"
-        className="note-input"
-      />
-      <div className="note-actions">
-        <button onClick={() => onSave(val)} className="btn primary">
-          Save note
-        </button>
-        <button onClick={onCancel} className="btn">
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
+                          {toppingsTotal
