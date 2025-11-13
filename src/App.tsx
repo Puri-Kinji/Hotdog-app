@@ -360,11 +360,10 @@ const confirmModifiers = () => {
         toppings: finalToppings
       }];
     }
+  });
   
   cancelModifiers();
-};
-};
-
+};  // <-- Only one closing brace here
   return (
     <div className="app">
       {/* Header */}
