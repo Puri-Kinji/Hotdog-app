@@ -677,19 +677,35 @@ export default function RestaurantApp() {
                     <span>{money(modifierState.item.price)}</span>
                   </div>
                   <div className="total-line">
-                    <span>Bread:</span>
-                    <span className={BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price > 0 ? 'price-increase' : ''}>
-                      {BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price > 0 ? '+' : ''}
-                      {money(BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0)}
-                    </span>
-                  </div>
-                  <div className="total-line">
-                    <span>Toppings:</span>
-                    <span className={modifierState.tempToppings.reduce((sum, t) => sum + (t.price * t.quantity), 0) > 0 ? 'price-increase' : ''}>
-                      {modifierState.tempToppings.reduce((sum, t) => sum + (t.price * t.quantity), 0) > 0 ? '+' : ''}
-                      {money(modifierState.tempToppings.reduce((sum, t) => sum + (t.price * t.quantity), 0))}
-                    </span>
-                  </div>
+  <span>Bread:</span>
+  {(() => {
+    const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
+    const price = bread?.price ?? 0;
+    return (
+      <span className={price > 0 ? 'price-increase' : ''}>
+        {price > 0 ? '+' : ''}
+        {money(price)}
+      </span>
+    );
+  })()}
+</div>
+
+<div className="total-line">
+  <span>Toppings:</span>
+  {(() => {
+    const toppingsTotal = modifierState.tempToppings.reduce(
+      (sum, t) => sum + t.price * t.quantity,
+      0
+    );
+    return (
+      <span className={toppingsTotal > 0 ? 'price-increase' : ''}>
+        {toppingsTotal > 0 ? '+' : ''}
+        {money(toppingsTotal)}
+      </span>
+    );
+  })()}
+</div>
+
                   <div className="total-line final">
                     <span>Total:</span>
                     <span>{money(calculateModifierTotal())}</span>
