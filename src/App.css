@@ -137,7 +137,6 @@ body {
   font-weight: bold;
 }
 
-
 /* Main Content */
 .main {
   padding: 2rem 1rem;
@@ -201,7 +200,6 @@ body {
   color: inherit;            /* stays white */
 }
 
-
 /* Menu Sections */
 .menu-sections {
   display: flex;
@@ -215,7 +213,6 @@ body {
   padding: 2rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
 
 .section-title {
   font-size: 1.75rem;
@@ -443,7 +440,10 @@ body {
 
 .item-bread,
 .item-toppings,
-.item-note {
+.item-note,
+.item-ears-way,
+.item-chip-choice,
+.item-double-bagged {
   font-size: 0.9rem;
   color: #6c757d;
   margin-bottom: 0.25rem;
@@ -888,86 +888,6 @@ body {
   transform: none;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .header-content {
-    gap: 0.75rem;
-  }
-  
-  .logo-image {
-    width: 200px;
-  }
-  
-  .restaurant-name {
-    font-size: 1.5rem;
-  }
-  
-  .header-details {
-    font-size: 0.9rem;
-  }
-  
-  .items-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .cart-sidebar {
-    max-width: 100%;
-  }
-  
-  .cart-item-main {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .item-controls {
-    align-items: flex-start;
-    width: 100%;
-  }
-  
-  .modifier-modal {
-    margin: 0;
-    border-radius: 0;
-    max-height: 100vh;
-  }
-  
-  .topping-item {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-  
-  .topping-controls {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-top {
-    padding: 1rem;
-  }
-  
-  .main {
-    padding: 1rem;
-  }
-  
-  .menu-section {
-    padding: 1.5rem;
-  }
-  
-  .category-tab {
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
-  }
-  
-  .modifier-actions {
-    flex-direction: column;
-  }
-  
-  .cancel-btn,
-  .confirm-btn {
-    width: 100%;
-  }
-}
 /* Chip Options Styling */
 .chip-options {
   display: flex;
@@ -1030,6 +950,7 @@ body {
   font-weight: 500;
   color: #333;
 }
+
 /* Cake Options Styles */
 .cake-options {
   display: flex;
@@ -1065,6 +986,157 @@ body {
   font-weight: 600;
   color: #059669;
 }
+
+/* Vegan Cake Section Styles */
+.vegan-cake-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.cake-option {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.cake-option:hover {
+  border-color: #cfb857;
+  background-color: #fffbeb;
+}
+
+.cake-option.selected {
+  border-color: #cfb857;
+  background-color: #fffbeb;
+  box-shadow: 0 0 0 3px rgba(207, 184, 87, 0.1);
+}
+
+.cake-option input[type="radio"] {
+  margin-right: 1rem;
+  width: 18px;
+  height: 18px;
+  accent-color: #cfb857;
+}
+
+.cake-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cake-name {
+  font-weight: 500;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.cake-price {
+  font-weight: 600;
+  color: #059669;
+  font-size: 1rem;
+}
+
+/* Cake Customization Summary */
+.cake-summary {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.summary-line.total {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+/* Cake Action Buttons */
+.cake-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancel-cake-btn,
+.confirm-cake-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.cancel-cake-btn {
+  background: #6b7280;
+  color: white;
+}
+
+.cancel-cake-btn:hover {
+  background: #4b5563;
+}
+
+.confirm-cake-btn {
+  background: #cfb857;
+  color: white;
+}
+
+.confirm-cake-btn:hover:not(:disabled) {
+  background: #b8a34d;
+  transform: translateY(-1px);
+}
+
+.confirm-cake-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Section Header for Vegan Cakes */
+.vegan-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.vegan-section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.vegan-section-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
 /* Drink Options Styles - Matching Cake Design */
 .drink-options {
   display: flex;
@@ -1090,12 +1162,6 @@ body {
   background-color: #fffbeb;
 }
 
-.drink-option.selected {
-  border-color: #cfb857;
-  background-color: #fffbeb;
-  box-shadow: 0 0 0 3px rgba(207, 184, 87, 0.1);
-}
-
 .drink-option input[type="radio"] {
   margin-right: 1rem;
   width: 18px;
@@ -1103,14 +1169,8 @@ body {
   accent-color: #cfb857;
 }
 
-.drink-info {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .drink-name {
+  flex: 1;
   font-weight: 500;
   color: #374151;
   font-size: 1rem;
@@ -1128,23 +1188,6 @@ body {
   border-radius: 8px;
   padding: 1.5rem;
   margin-top: 1.5rem;
-}
-
-.summary-line {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-  font-size: 0.95rem;
-  color: #6b7280;
-}
-
-.summary-line.total {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #374151;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 0.75rem;
-  margin-top: 0.75rem;
 }
 
 /* Drink Action Buttons */
@@ -1221,16 +1264,151 @@ body {
   margin-left: 4px;
 }
 
-/* Responsive Design for Drink Sections */
+/* Earle's Way Option Styling */
+.ears-way-option {
+  margin-top: 1rem;
+}
+
+.ears-way-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ears-way-label:hover {
+  border-color: #cfb857;
+  background-color: #fffbeb;
+}
+
+.ears-way-label input[type="checkbox"] {
+  margin-right: 0.5rem;
+  width: 18px;
+  height: 18px;
+  accent-color: #cfb857;
+}
+
+.ears-way-name {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.ears-way-description {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-style: italic;
+  margin-left: 1.5rem;
+}
+
+/* Error Banner */
+.error-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #dc3545;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  z-index: 2000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .drink-option {
+  .header-content {
+    gap: 0.75rem;
+  }
+  
+  .logo-image {
+    width: 200px;
+  }
+  
+  .restaurant-name {
+    font-size: 1.5rem;
+  }
+  
+  .header-details {
+    font-size: 0.9rem;
+  }
+  
+  .items-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cart-sidebar {
+    max-width: 100%;
+  }
+  
+  .cart-item-main {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .item-controls {
+    align-items: flex-start;
+    width: 100%;
+  }
+  
+  .modifier-modal {
+    margin: 0;
+    border-radius: 0;
+    max-height: 100vh;
+  }
+  
+  .topping-item {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .topping-controls {
+    justify-content: center;
+  }
+  
+  .cake-option {
     padding: 0.75rem;
   }
   
-  .drink-info {
+  .cake-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+  
+  .cake-actions {
+    flex-direction: column;
+  }
+  
+  .cancel-cake-btn,
+  .confirm-cake-btn {
+    width: 100%;
+  }
+  
+  .drink-option {
+    padding: 0.75rem;
   }
   
   .drink-actions {
@@ -1244,6 +1422,42 @@ body {
 }
 
 @media (max-width: 480px) {
+  .header-top {
+    padding: 1rem;
+  }
+  
+  .main {
+    padding: 1rem;
+  }
+  
+  .menu-section {
+    padding: 1.5rem;
+  }
+  
+  .category-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .modifier-actions {
+    flex-direction: column;
+  }
+  
+  .cancel-btn,
+  .confirm-btn {
+    width: 100%;
+  }
+  
+  .vegan-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .cake-summary {
+    padding: 1rem;
+  }
+  
   .drink-section-header {
     flex-direction: column;
     align-items: flex-start;
