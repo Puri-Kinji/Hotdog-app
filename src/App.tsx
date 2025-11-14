@@ -57,6 +57,7 @@ type ModifierState = {
   chipChoice?: string;
   doubleBagged?: boolean;
   selectedCake?: string;
+  selectedDrink?: string;
 };
 
 /* -------------------------------- Restaurant Info ------------------------------- */
@@ -122,6 +123,7 @@ const MENU: MenuItem[] = [
   { id: "side-vegan-chili", name: "Side of Vegan Chili", price: 2.49, category: "Sides & Extras", badge: "Vegan" },
 
   // Drinks
+  { id: "can-soda", name: "CAN SODA", price: 3.79, category: "Drinks" },
   { id: "small-playas-punch", name: "PLAYAS PUNCH", price: 4.49, category: "Drinks" },
   { id: "large-playas-punch", name: "LARGE PLAYAS PUNCH", price: 5.49, category: "Drinks" },
   { id: "half-gallon-playas-punch", name: "1/2 GALLON PLAYAS PUNCH", price: 9.99, category: "Drinks" },
@@ -130,6 +132,16 @@ const MENU: MenuItem[] = [
   { id: "coconut-water", name: "COCONUT WATER", price: 5.49, category: "Drinks" },
   { id: "bottled-water", name: "BOTTLED WATER", price: 1.49, category: "Drinks" },
   { id: "honey-punch", name: "HONEY PUNCH", price: 7.99, category: "Drinks" },
+  { id: "apryl-drink", name: "APRYL'S JUICE", price: 3.79, category: "Drinks", hasModifiers: true },
+  { id: "creme-soda", name: "CREME SODA", price: 3.79, category: "Drinks" },
+  { id: "root-beer", name: "ROOT BEER", price: 3.79, category: "Drinks" },
+  { id: "shirley-temple", name: "SHIRLEY TEMPLE", price: 3.79, category: "Drinks" },
+  { id: "jamaican-ginger-beer", name: "JAMAICAN GINGER BEER", price: 3.79, category: "Drinks" },
+  { id: "bundaberg-ginger-beer", name: "BUNDABERG GINGER BEER", price: 3.79, category: "Drinks" },
+  { id: "blood-orange", name: "BLOOD ORANGE", price: 3.79, category: "Drinks" },
+  { id: "snappe-drink", name: "SNAPPLE", price: 3.79, category: "Drinks", hasModifiers: true },
+  { id: "welches", name: "GRAPE WELCHES", price: 3.79, category: "Drinks" },
+  
 
   // Desserts
   { id: "cakes", name: "Cakes", price: 8.49, category: "Desserts", hasModifiers: true },
@@ -193,6 +205,21 @@ const CAKE_OPTIONS = {
   vegan: [
     { id: "lemon-delight", name: "Lemon Delight", price: 7.49 },
     { id: "double-chocolate", name: "Double Chocolate", price: 7.49 }
+  ]
+};
+
+/* ---------------------------------- Drink Modifiers Data ---------------------------------- */
+const DRINK_OPTIONS = {
+  apryl: [
+    { id: "pineapple-tumeric", name: "Pineapple Tumeric", price: 3.79 },
+    { id: "spicy-limeade", name: "Spicy Limeade", price: 3.79 },
+    { id: "village-green", name: "Village Green Drink", price: 3.79 }
+  ],
+  snapple: [
+    { id: "peach-tea", name: "Peach Tea", price: 3.79 },
+    { id: "kiwi-strawberry", name: "Kiwi Strawberry", price: 3.79 },
+    { id: "mango", name: "Mango", price: 3.79 },
+    { id: "diet", name: "Diet", price: 3.79 }
   ]
 };
 
@@ -261,8 +288,8 @@ export default function RestaurantApp() {
     if (!modifierState.item) return 0;
     
     let breadPrice = 0;
-    // Only include bread price if it's NOT a side/extra and not a cake
-    if (!modifierState.isSideOrExtra && !modifierState.selectedCake) {
+    // Only include bread price if it's NOT a side/extra and not a cake and not a drink
+    if (!modifierState.isSideOrExtra && !modifierState.selectedCake && !modifierState.selectedDrink) {
       breadPrice = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0;
     }
     
@@ -281,7 +308,17 @@ export default function RestaurantApp() {
       cakePrice = selectedCake?.price || modifierState.item.price;
     }
     
-    const basePrice = modifierState.selectedCake ? cakePrice : modifierState.item.price;
+    // Calculate drink price if selected
+    let drinkPrice = 0;
+    if (modifierState.selectedDrink) {
+      const drinkOptions = modifierState.item.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple;
+      const selectedDrink = drinkOptions.find(drink => drink.id === modifierState.selectedDrink);
+      drinkPrice = selectedDrink?.price || modifierState.item.price;
+    }
+    
+    const basePrice = modifierState.selectedCake ? cakePrice : 
+                     modifierState.selectedDrink ? drinkPrice : 
+                     modifierState.item.price;
     
     return basePrice + breadPrice + toppingsTotal + doubleBaggedCharge;
   };
@@ -300,9 +337,12 @@ export default function RestaurantApp() {
   };
 
   function addToCart(item: MenuItem) {
-    if (item.hasModifiers || item.specialModifiers || item.id === "cakes" || item.id === "vegan-cakes") {
+    if (item.hasModifiers || item.specialModifiers || item.id === "cakes" || item.id === "vegan-cakes" || item.id === "apryl-drink" || item.id === "snappe-drink") {
       // Check if it's a cake item
       const isCake = item.id === "cakes" || item.id === "vegan-cakes";
+      
+      // Check if it's a drink with modifiers
+      const isDrink = item.id === "apryl-drink" || item.id === "snappe-drink";
       
       // Check if it's a Sides & Extras item
       const isSideOrExtra = item.category === "Sides & Extras";
@@ -325,6 +365,13 @@ export default function RestaurantApp() {
         defaultCake = cakeOptions[0]?.id || "";
       }
       
+      // Set default drink selection
+      let defaultDrink = "";
+      if (isDrink) {
+        const drinkOptions = item.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple;
+        defaultDrink = drinkOptions[0]?.id || "";
+      }
+      
       setModifierState({
         isOpen: true,
         item,
@@ -334,7 +381,8 @@ export default function RestaurantApp() {
         isSideOrExtra: isSideOrExtra,
         chipChoice: defaultChipChoice,
         doubleBagged: false,
-        selectedCake: defaultCake
+        selectedCake: defaultCake,
+        selectedDrink: defaultDrink
       });
     } else {
       // Add directly to cart for items without modifiers
@@ -444,8 +492,8 @@ export default function RestaurantApp() {
     let breadName = "";
     let breadPrice = 0;
     
-    // Only include bread if it's NOT a side/extra and not a cake
-    if (!modifierState.isSideOrExtra && !modifierState.selectedCake) {
+    // Only include bread if it's NOT a side/extra and not a cake and not a drink
+    if (!modifierState.isSideOrExtra && !modifierState.selectedCake && !modifierState.selectedDrink) {
       const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
       breadName = bread?.name || "";
       breadPrice = bread?.price || 0;
@@ -454,28 +502,21 @@ export default function RestaurantApp() {
     const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
     
     setCart((c) => {
-      const basePrice = modifierState.selectedCake ? 
-        (modifierState.item!.id === "cakes" ? 
-          CAKE_OPTIONS.regular.find(c => c.id === modifierState.selectedCake)?.price || modifierState.item!.price :
-          CAKE_OPTIONS.vegan.find(c => c.id === modifierState.selectedCake)?.price || modifierState.item!.price
-        ) : 
-        modifierState.item!.price;
-        
-      const totalBasePrice = basePrice + breadPrice;
-      const toppingsTotal = finalToppings.reduce((sum, topping) => 
-        sum + (topping.price * topping.quantity), 0
-      );
-      const doubleBaggedCharge = modifierState.doubleBagged ? 1.00 : 0;
-      const totalPrice = totalBasePrice + toppingsTotal + doubleBaggedCharge;
-      
-      // Create appropriate item name
+      // Calculate base price based on modifier type
+      let basePrice = modifierState.item!.price;
       let itemName = modifierState.item!.name;
       
-      // Add cake selection to name
       if (modifierState.selectedCake) {
         const cakeOptions = modifierState.item!.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
         const selectedCake = cakeOptions.find(cake => cake.id === modifierState.selectedCake);
+        basePrice = selectedCake?.price || modifierState.item!.price;
         itemName = selectedCake?.name || modifierState.item!.name;
+      } 
+      else if (modifierState.selectedDrink) {
+        const drinkOptions = modifierState.item!.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple;
+        const selectedDrink = drinkOptions.find(drink => drink.id === modifierState.selectedDrink);
+        basePrice = selectedDrink?.price || modifierState.item!.price;
+        itemName = `${modifierState.item!.name} - ${selectedDrink?.name}`;
       }
       // Add chip choice to name if applicable
       else if (modifierState.chipChoice) {
@@ -485,13 +526,20 @@ export default function RestaurantApp() {
         itemName = `${modifierState.item!.name} (${breadName})`;
       }
       
+      const totalBasePrice = basePrice + breadPrice;
+      const toppingsTotal = finalToppings.reduce((sum, topping) => 
+        sum + (topping.price * topping.quantity), 0
+      );
+      const doubleBaggedCharge = modifierState.doubleBagged ? 1.00 : 0;
+      const totalPrice = totalBasePrice + toppingsTotal + doubleBaggedCharge;
+      
       const exists = c.find((l) => 
         l.id === modifierState.item!.id && 
         l.bread === breadName &&
         l.chipChoice === modifierState.chipChoice &&
         l.doubleBagged === modifierState.doubleBagged &&
         JSON.stringify(l.toppings) === JSON.stringify(finalToppings) &&
-        l.name === itemName // Also check if the name matches (for cake selection)
+        l.name === itemName // Also check if the name matches (for cake/drink selection)
       );
       
       if (exists) {
@@ -504,7 +552,7 @@ export default function RestaurantApp() {
           name: itemName, 
           price: totalPrice, 
           qty: 1,
-          bread: modifierState.isSideOrExtra || modifierState.selectedCake ? undefined : breadName,
+          bread: (modifierState.isSideOrExtra || modifierState.selectedCake || modifierState.selectedDrink) ? undefined : breadName,
           toppings: finalToppings,
           chipChoice: modifierState.chipChoice,
           doubleBagged: modifierState.doubleBagged
@@ -753,6 +801,31 @@ export default function RestaurantApp() {
                   </div>
                 )}
 
+                {/* Drink Selection */}
+                {(modifierState.item.id === "apryl-drink" || modifierState.item.id === "snappe-drink") && (
+                  <div className="modifier-section">
+                    <h3>Select Flavor *</h3>
+                    <div className="drink-options">
+                      {(modifierState.item.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple).map(drink => (
+                        <label key={drink.id} className="drink-option">
+                          <input
+                            type="radio"
+                            name="drink"
+                            value={drink.id}
+                            checked={modifierState.selectedDrink === drink.id}
+                            onChange={(e) => setModifierState(prev => ({
+                              ...prev,
+                              selectedDrink: e.target.value
+                            }))}
+                          />
+                          <span className="drink-name">{drink.name}</span>
+                          <span className="drink-price">{money(drink.price)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Special Chip Modifiers for Fritos items */}
                 {modifierState.item.specialModifiers === "fritos" && (
                   <div className="modifier-section">
@@ -862,8 +935,8 @@ export default function RestaurantApp() {
                   </div>
                 )}
 
-                {/* Bread Selection - Only show for non-sides/extras and items without special modifiers and not cakes */}
-                {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && (
+                {/* Bread Selection - Only show for non-sides/extras and items without special modifiers and not cakes and not drinks */}
+                {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && (
                   <div className="modifier-section">
                     <h3>Bread Selection *</h3>
                     <div className="bread-options">
@@ -889,8 +962,8 @@ export default function RestaurantApp() {
                   </div>
                 )}
 
-                {/* Free Toppings - Only show for items without special modifiers and not cakes */}
-                {!modifierState.item.specialModifiers && !modifierState.selectedCake && (
+                {/* Free Toppings - Only show for items without special modifiers and not cakes and not drinks */}
+                {!modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && (
                   <div className="modifier-section">
                     <h3>
                       Free Toppings 
@@ -936,8 +1009,8 @@ export default function RestaurantApp() {
                   </div>
                 )}
 
-                {/* Paid Toppings - Only show for items without special modifiers and not cakes */}
-                {!modifierState.item.specialModifiers && !modifierState.selectedCake && (
+                {/* Paid Toppings - Only show for items without special modifiers and not cakes and not drinks */}
+                {!modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && (
                   <div className="modifier-section">
                     <h3>Premium Toppings</h3>
                     <p className="premium-note">Premium toppings don't count toward your free topping limit</p>
@@ -986,17 +1059,23 @@ export default function RestaurantApp() {
                 <div className="modifier-total">
                   <div className="total-line">
                     <span>Base Price:</span>
-                    <span>{money(modifierState.selectedCake ? 
-                      (modifierState.item.id === "cakes" ? 
-                        CAKE_OPTIONS.regular.find(c => c.id === modifierState.selectedCake)?.price || modifierState.item.price :
-                        CAKE_OPTIONS.vegan.find(c => c.id === modifierState.selectedCake)?.price || modifierState.item.price
-                      ) : 
-                      modifierState.item.price
-                    )}</span>
+                    <span>{money(() => {
+                      if (modifierState.selectedCake) {
+                        const cakeOptions = modifierState.item!.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
+                        const selectedCake = cakeOptions.find(cake => cake.id === modifierState.selectedCake);
+                        return selectedCake?.price || modifierState.item!.price;
+                      } else if (modifierState.selectedDrink) {
+                        const drinkOptions = modifierState.item!.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple;
+                        const selectedDrink = drinkOptions.find(drink => drink.id === modifierState.selectedDrink);
+                        return selectedDrink?.price || modifierState.item!.price;
+                      } else {
+                        return modifierState.item!.price;
+                      }
+                    }())}</span>
                   </div>
                   
-                  {/* Only show bread line for non-sides/extras and items without special modifiers and not cakes */}
-                  {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && (
+                  {/* Only show bread line for non-sides/extras and items without special modifiers and not cakes and not drinks */}
+                  {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && (
                     <div className="total-line">
                       <span>Bread:</span>
                       {(() => {
@@ -1020,8 +1099,8 @@ export default function RestaurantApp() {
                     </div>
                   )}
                   
-                  {/* Show toppings total only for items without special modifiers and not cakes */}
-                  {!modifierState.item.specialModifiers && !modifierState.selectedCake && (
+                  {/* Show toppings total only for items without special modifiers and not cakes and not drinks */}
+                  {!modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && (
                     <div className="total-line">
                       <span>Toppings:</span>
                       {(() => {
@@ -1058,8 +1137,10 @@ export default function RestaurantApp() {
                     disabled={
                       // For cake items: require cake selection
                       ((modifierState.item.id === "cakes" || modifierState.item.id === "vegan-cakes") && !modifierState.selectedCake) ||
+                      // For drink items: require drink selection
+                      ((modifierState.item.id === "apryl-drink" || modifierState.item.id === "snappe-drink") && !modifierState.selectedDrink) ||
                       // For regular items: require bread selection
-                      (!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedBread) ||
+                      (!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && !modifierState.selectedBread) ||
                       // For bag of chips: require chip choice
                       (modifierState.item.specialModifiers === "chips" && !modifierState.chipChoice) ||
                       // For fritos items: require chip choice
