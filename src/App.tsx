@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useReducer } from "react";
+import { useMemo, useState, useCallback, useReducer, useEffect } from "react";
 import "./index.css";
 import "./App.css";
 import logo from "./assets/Yellow + Black Logo_Earle_s on Crenshaw.png";
