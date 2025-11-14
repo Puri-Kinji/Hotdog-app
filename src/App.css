@@ -1065,3 +1065,192 @@ body {
   font-weight: 600;
   color: #059669;
 }
+/* Drink Options Styles - Matching Cake Design */
+.drink-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.drink-option {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.drink-option:hover {
+  border-color: #cfb857;
+  background-color: #fffbeb;
+}
+
+.drink-option.selected {
+  border-color: #cfb857;
+  background-color: #fffbeb;
+  box-shadow: 0 0 0 3px rgba(207, 184, 87, 0.1);
+}
+
+.drink-option input[type="radio"] {
+  margin-right: 1rem;
+  width: 18px;
+  height: 18px;
+  accent-color: #cfb857;
+}
+
+.drink-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drink-name {
+  font-weight: 500;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.drink-price {
+  font-weight: 600;
+  color: #059669;
+  font-size: 1rem;
+}
+
+/* Drink Customization Summary */
+.drink-summary {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.summary-line.total {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+/* Drink Action Buttons */
+.drink-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancel-drink-btn,
+.confirm-drink-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.cancel-drink-btn {
+  background: #6b7280;
+  color: white;
+}
+
+.cancel-drink-btn:hover {
+  background: #4b5563;
+}
+
+.confirm-drink-btn {
+  background: #cfb857;
+  color: white;
+}
+
+.confirm-drink-btn:hover:not(:disabled) {
+  background: #b8a34d;
+  transform: translateY(-1px);
+}
+
+.confirm-drink-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Section Header for Drinks */
+.drink-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.drink-section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.drink-section-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Required Field Indicator */
+.required-field {
+  color: #dc2626;
+  margin-left: 4px;
+}
+
+/* Responsive Design for Drink Sections */
+@media (max-width: 768px) {
+  .drink-option {
+    padding: 0.75rem;
+  }
+  
+  .drink-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .drink-actions {
+    flex-direction: column;
+  }
+  
+  .cancel-drink-btn,
+  .confirm-drink-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .drink-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .drink-summary {
+    padding: 1rem;
+  }
+}
