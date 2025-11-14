@@ -56,6 +56,7 @@ type ModifierState = {
   isSideOrExtra?: boolean;
   chipChoice?: string;
   doubleBagged?: boolean;
+  selectedCake?: string;
 };
 
 /* -------------------------------- Restaurant Info ------------------------------- */
@@ -75,7 +76,6 @@ const RESTAURANT = {
   ],
 };
 
-/* ---------------------------------- Menu Data ---------------------------------- */
 /* ---------------------------------- Menu Data ---------------------------------- */
 const MENU: MenuItem[] = [
   // Dogs & Links
@@ -132,8 +132,8 @@ const MENU: MenuItem[] = [
   { id: "honey-punch", name: "HONEY PUNCH", price: 7.99, category: "Drinks" },
 
   // Desserts
-  { id: "cakes", name: "Cakes", price: 8.49, category: "Desserts" },
-  { id: "vegan-cakes", name: "Vegan Cakes", price: 7.49, category: "Desserts", badge: "Vegan" },
+  { id: "cakes", name: "Cakes", price: 8.49, category: "Desserts", hasModifiers: true },
+  { id: "vegan-cakes", name: "Vegan Cakes", price: 7.49, category: "Desserts", badge: "Vegan", hasModifiers: true },
   { id: "cheese-cake", name: "Cheese Cake", price: 7.99, category: "Desserts" },
   { id: "cobbler", name: "Cobbler", price: 4.99, category: "Desserts" },
   { id: "coffee-cake", name: "Coffee Cake", price: 4.99, category: "Desserts" },
@@ -142,6 +142,7 @@ const MENU: MenuItem[] = [
   { id: "bean-pie", name: "Bean Pie", price: 4.99, category: "Desserts" },
   { id: "sweet-potato-pie", name: "Sweet Potato Pie", price: 4.99, category: "Desserts" },
 ];
+
 /* ---------------------------------- Modifiers Data ---------------------------------- */
 const BREAD_OPTIONS: Topping[] = [
   { id: "no-bread", name: "No Bread", price: 0.00, category: "bread", isDefault: false },
@@ -180,6 +181,20 @@ const TOPPINGS: Topping[] = [
   { id: "vegan-chili", name: "Vegan Chili Scoop", price: 2.49, category: "paid" },
   { id: "pastrami", name: "Pastrami", price: 5.99, category: "paid" },
 ];
+
+/* ---------------------------------- Cake Modifiers Data ---------------------------------- */
+const CAKE_OPTIONS = {
+  regular: [
+    { id: "carrot-cake", name: "Carrot Cake", price: 8.49 },
+    { id: "yellow-chocolate", name: "Yellow Chocolate", price: 8.49 },
+    { id: "red-velvet", name: "Red Velvet", price: 8.49 },
+    { id: "german-chocolate", name: "German Chocolate", price: 8.49 }
+  ],
+  vegan: [
+    { id: "lemon-delight", name: "Lemon Delight", price: 7.49 },
+    { id: "double-chocolate", name: "Double Chocolate", price: 7.49 }
+  ]
+};
 
 const CATEGORIES: MenuItem["category"][] = [
   "Dogs & Links",
@@ -246,8 +261,8 @@ export default function RestaurantApp() {
     if (!modifierState.item) return 0;
     
     let breadPrice = 0;
-    // Only include bread price if it's NOT a side/extra
-    if (!modifierState.isSideOrExtra) {
+    // Only include bread price if it's NOT a side/extra and not a cake
+    if (!modifierState.isSideOrExtra && !modifierState.selectedCake) {
       breadPrice = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0;
     }
     
@@ -258,7 +273,17 @@ export default function RestaurantApp() {
     // Add double bagged charge for Fritos items
     const doubleBaggedCharge = modifierState.doubleBagged ? 1.00 : 0;
     
-    return modifierState.item.price + breadPrice + toppingsTotal + doubleBaggedCharge;
+    // Calculate cake price if selected
+    let cakePrice = 0;
+    if (modifierState.selectedCake) {
+      const cakeOptions = modifierState.item.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
+      const selectedCake = cakeOptions.find(cake => cake.id === modifierState.selectedCake);
+      cakePrice = selectedCake?.price || modifierState.item.price;
+    }
+    
+    const basePrice = modifierState.selectedCake ? cakePrice : modifierState.item.price;
+    
+    return basePrice + breadPrice + toppingsTotal + doubleBaggedCharge;
   };
 
   // Get topping limit based on item category
@@ -275,7 +300,10 @@ export default function RestaurantApp() {
   };
 
   function addToCart(item: MenuItem) {
-    if (item.hasModifiers || item.specialModifiers) {
+    if (item.hasModifiers || item.specialModifiers || item.id === "cakes" || item.id === "vegan-cakes") {
+      // Check if it's a cake item
+      const isCake = item.id === "cakes" || item.id === "vegan-cakes";
+      
       // Check if it's a Sides & Extras item
       const isSideOrExtra = item.category === "Sides & Extras";
       
@@ -290,6 +318,13 @@ export default function RestaurantApp() {
         defaultChipChoice = "Lays";
       }
       
+      // Set default cake selection
+      let defaultCake = "";
+      if (isCake) {
+        const cakeOptions = item.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
+        defaultCake = cakeOptions[0]?.id || "";
+      }
+      
       setModifierState({
         isOpen: true,
         item,
@@ -298,7 +333,8 @@ export default function RestaurantApp() {
         tempToppings: [],
         isSideOrExtra: isSideOrExtra,
         chipChoice: defaultChipChoice,
-        doubleBagged: false
+        doubleBagged: false,
+        selectedCake: defaultCake
       });
     } else {
       // Add directly to cart for items without modifiers
@@ -408,8 +444,8 @@ export default function RestaurantApp() {
     let breadName = "";
     let breadPrice = 0;
     
-    // Only include bread if it's NOT a side/extra
-    if (!modifierState.isSideOrExtra) {
+    // Only include bread if it's NOT a side/extra and not a cake
+    if (!modifierState.isSideOrExtra && !modifierState.selectedCake) {
       const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
       breadName = bread?.name || "";
       breadPrice = bread?.price || 0;
@@ -418,22 +454,34 @@ export default function RestaurantApp() {
     const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
     
     setCart((c) => {
-      const basePrice = modifierState.item!.price + breadPrice;
+      const basePrice = modifierState.selectedCake ? 
+        (modifierState.item!.id === "cakes" ? 
+          CAKE_OPTIONS.regular.find(c => c.id === modifierState.selectedCake)?.price || modifierState.item!.price :
+          CAKE_OPTIONS.vegan.find(c => c.id === modifierState.selectedCake)?.price || modifierState.item!.price
+        ) : 
+        modifierState.item!.price;
+        
+      const totalBasePrice = basePrice + breadPrice;
       const toppingsTotal = finalToppings.reduce((sum, topping) => 
         sum + (topping.price * topping.quantity), 0
       );
       const doubleBaggedCharge = modifierState.doubleBagged ? 1.00 : 0;
-      const totalPrice = basePrice + toppingsTotal + doubleBaggedCharge;
+      const totalPrice = totalBasePrice + toppingsTotal + doubleBaggedCharge;
       
       // Create appropriate item name
       let itemName = modifierState.item!.name;
       
+      // Add cake selection to name
+      if (modifierState.selectedCake) {
+        const cakeOptions = modifierState.item!.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
+        const selectedCake = cakeOptions.find(cake => cake.id === modifierState.selectedCake);
+        itemName = selectedCake?.name || modifierState.item!.name;
+      }
       // Add chip choice to name if applicable
-      if (modifierState.chipChoice) {
+      else if (modifierState.chipChoice) {
         itemName = `${modifierState.item!.name} (${modifierState.chipChoice})`;
       }
-      
-      if (!modifierState.isSideOrExtra && breadName && breadName !== "No Bread") {
+      else if (!modifierState.isSideOrExtra && breadName && breadName !== "No Bread") {
         itemName = `${modifierState.item!.name} (${breadName})`;
       }
       
@@ -442,7 +490,8 @@ export default function RestaurantApp() {
         l.bread === breadName &&
         l.chipChoice === modifierState.chipChoice &&
         l.doubleBagged === modifierState.doubleBagged &&
-        JSON.stringify(l.toppings) === JSON.stringify(finalToppings)
+        JSON.stringify(l.toppings) === JSON.stringify(finalToppings) &&
+        l.name === itemName // Also check if the name matches (for cake selection)
       );
       
       if (exists) {
@@ -455,7 +504,7 @@ export default function RestaurantApp() {
           name: itemName, 
           price: totalPrice, 
           qty: 1,
-          bread: modifierState.isSideOrExtra ? undefined : breadName,
+          bread: modifierState.isSideOrExtra || modifierState.selectedCake ? undefined : breadName,
           toppings: finalToppings,
           chipChoice: modifierState.chipChoice,
           doubleBagged: modifierState.doubleBagged
@@ -679,6 +728,31 @@ export default function RestaurantApp() {
               </div>
 
               <div className="modifier-content">
+                {/* Cake Selection */}
+                {(modifierState.item.id === "cakes" || modifierState.item.id === "vegan-cakes") && (
+                  <div className="modifier-section">
+                    <h3>Select Cake Flavor *</h3>
+                    <div className="cake-options">
+                      {(modifierState.item.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan).map(cake => (
+                        <label key={cake.id} className="cake-option">
+                          <input
+                            type="radio"
+                            name="cake"
+                            value={cake.id}
+                            checked={modifierState.selectedCake === cake.id}
+                            onChange={(e) => setModifierState(prev => ({
+                              ...prev,
+                              selectedCake: e.target.value
+                            }))}
+                          />
+                          <span className="cake-name">{cake.name}</span>
+                          <span className="cake-price">{money(cake.price)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Special Chip Modifiers for Fritos items */}
                 {modifierState.item.specialModifiers === "fritos" && (
                   <div className="modifier-section">
@@ -788,8 +862,8 @@ export default function RestaurantApp() {
                   </div>
                 )}
 
-                {/* Bread Selection - Only show for non-sides/extras and items without special modifiers */}
-                {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && (
+                {/* Bread Selection - Only show for non-sides/extras and items without special modifiers and not cakes */}
+                {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && (
                   <div className="modifier-section">
                     <h3>Bread Selection *</h3>
                     <div className="bread-options">
@@ -815,8 +889,8 @@ export default function RestaurantApp() {
                   </div>
                 )}
 
-                {/* Free Toppings - Only show for items without special modifiers */}
-                {!modifierState.item.specialModifiers && (
+                {/* Free Toppings - Only show for items without special modifiers and not cakes */}
+                {!modifierState.item.specialModifiers && !modifierState.selectedCake && (
                   <div className="modifier-section">
                     <h3>
                       Free Toppings 
@@ -862,8 +936,8 @@ export default function RestaurantApp() {
                   </div>
                 )}
 
-                {/* Paid Toppings - Only show for items without special modifiers */}
-                {!modifierState.item.specialModifiers && (
+                {/* Paid Toppings - Only show for items without special modifiers and not cakes */}
+                {!modifierState.item.specialModifiers && !modifierState.selectedCake && (
                   <div className="modifier-section">
                     <h3>Premium Toppings</h3>
                     <p className="premium-note">Premium toppings don't count toward your free topping limit</p>
@@ -912,11 +986,17 @@ export default function RestaurantApp() {
                 <div className="modifier-total">
                   <div className="total-line">
                     <span>Base Price:</span>
-                    <span>{money(modifierState.item.price)}</span>
+                    <span>{money(modifierState.selectedCake ? 
+                      (modifierState.item.id === "cakes" ? 
+                        CAKE_OPTIONS.regular.find(c => c.id === modifierState.selectedCake)?.price || modifierState.item.price :
+                        CAKE_OPTIONS.vegan.find(c => c.id === modifierState.selectedCake)?.price || modifierState.item.price
+                      ) : 
+                      modifierState.item.price
+                    )}</span>
                   </div>
                   
-                  {/* Only show bread line for non-sides/extras and items without special modifiers */}
-                  {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && (
+                  {/* Only show bread line for non-sides/extras and items without special modifiers and not cakes */}
+                  {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && (
                     <div className="total-line">
                       <span>Bread:</span>
                       {(() => {
@@ -940,8 +1020,8 @@ export default function RestaurantApp() {
                     </div>
                   )}
                   
-                  {/* Show toppings total only for items without special modifiers */}
-                  {!modifierState.item.specialModifiers && (
+                  {/* Show toppings total only for items without special modifiers and not cakes */}
+                  {!modifierState.item.specialModifiers && !modifierState.selectedCake && (
                     <div className="total-line">
                       <span>Toppings:</span>
                       {(() => {
@@ -976,8 +1056,10 @@ export default function RestaurantApp() {
                     className="confirm-btn" 
                     onClick={confirmModifiers}
                     disabled={
+                      // For cake items: require cake selection
+                      ((modifierState.item.id === "cakes" || modifierState.item.id === "vegan-cakes") && !modifierState.selectedCake) ||
                       // For regular items: require bread selection
-                      (!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedBread) ||
+                      (!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedBread) ||
                       // For bag of chips: require chip choice
                       (modifierState.item.specialModifiers === "chips" && !modifierState.chipChoice) ||
                       // For fritos items: require chip choice
