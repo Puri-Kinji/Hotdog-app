@@ -731,10 +731,68 @@ export default function RestaurantApp() {
   // Get topping limit based on item category
   const getToppingLimit = useCallback(() => {
     if (!modifierState.item) return 6;
-    if (modifierState.item.category === "Dogs & Links") return 5;
+    
+    // Chili Bowls have limit of 2 (excluding premium toppings)
+    if (modifierState.item.name.includes("CHILI BOWL")) return 2;
+    
+    // Burgers & Sandwiches have limit of 6
     if (modifierState.item.category === "Burgers & Sandwiches") return 6;
+    
+    // Dogs & Links have limit of 5
+    if (modifierState.item.category === "Dogs & Links") return 5;
+    
     return 6;
   }, [modifierState.item]);
+
+  // Get available toppings based on item type
+  const getAvailableToppings = useCallback(() => {
+    if (!modifierState.item) return TOPPINGS;
+    
+    // Chili Bowls only show specific toppings
+    if (modifierState.item.name.includes("CHILI BOWL")) {
+      const allowedToppingIds = ["ny-onions", "raw-onion", "jalapeno", "cheddar"];
+      return TOPPINGS.filter(topping => allowedToppingIds.includes(topping.id));
+    }
+    
+    return TOPPINGS;
+  }, [modifierState.item]);
+
+  // Get current free topping count for display (accounting for Earle's Way)
+  const getCurrentFreeToppingCount = useCallback(() => {
+    if (!modifierState.item) return 0;
+    
+    const freeToppingsCount = modifierState.tempToppings
+      .filter(t => {
+        const toppingData = TOPPINGS.find(td => td.id === t.id);
+        return toppingData?.category === "free" && t.quantity > 0;
+      })
+      .length;
+
+    // For Salmon Burger with Earle's Way, count it as 5 toppings
+    if (modifierState.item.id === "salmon-burger" && modifierState.earsWay) {
+      return Math.min(freeToppingsCount, 5); // Earle's Way counts as 5
+    }
+    
+    return freeToppingsCount;
+  }, [modifierState.tempToppings, modifierState.item, modifierState.earsWay]);
+
+  // Check if user can add more free toppings
+  const canAddFreeTopping = useCallback((toppingId: string) => {
+    if (!modifierState.item) return true;
+    
+    const topping = TOPPINGS.find(t => t.id === toppingId);
+    if (!topping || topping.category !== "free") return true;
+    
+    const currentFreeCount = getCurrentFreeToppingCount();
+    const toppingLimit = getToppingLimit();
+    
+    // For Salmon Burger with Earle's Way, they can only add 1 more topping
+    if (modifierState.item.id === "salmon-burger" && modifierState.earsWay) {
+      return currentFreeCount < 6; // Earle's Way (5) + 1 more = 6 total
+    }
+    
+    return currentFreeCount < toppingLimit;
+  }, [modifierState.item, modifierState.earsWay, getCurrentFreeToppingCount, getToppingLimit]);
 
   // Update topping quantity
   const updateToppingQuantity = useCallback((toppingId: string, quantity: number) => {
@@ -743,14 +801,14 @@ export default function RestaurantApp() {
     
     if (!topping) return;
 
-    const freeToppingsCount = modifierState.tempToppings
-      .filter(t => {
-        const toppingData = TOPPINGS.find(td => td.id === t.id);
-        return toppingData?.category === "free" && t.quantity > 0;
-      })
-      .length;
-
-    const toppingLimit = getToppingLimit();
+    // Check if this is a Chili Bowl and if the topping is allowed
+    if (modifierState.item?.name.includes("CHILI BOWL")) {
+      const allowedToppingIds = ["ny-onions", "raw-onion", "jalapeno", "cheddar"];
+      if (!allowedToppingIds.includes(toppingId)) {
+        dispatch({ type: 'SET_ERROR', payload: "This topping is not available for Chili Bowls" });
+        return;
+      }
+    }
 
     if (quantity === 0) {
       updateModifierState({
@@ -768,8 +826,16 @@ export default function RestaurantApp() {
       return;
     }
 
-    if (topping.category === "free" && freeToppingsCount >= toppingLimit) {
-      dispatch({ type: 'SET_ERROR', payload: `You can choose up to ${toppingLimit} free toppings total. Premium toppings don't count toward this limit.` });
+    // Check free topping limits (premium toppings are always allowed)
+    if (topping.category === "free" && !canAddFreeTopping(toppingId)) {
+      const toppingLimit = getToppingLimit();
+      
+      // Special message for Salmon Burger with Earle's Way
+      if (modifierState.item?.id === "salmon-burger" && modifierState.earsWay) {
+        dispatch({ type: 'SET_ERROR', payload: "Earle's Way includes 5 toppings. You can only add 1 more free topping." });
+      } else {
+        dispatch({ type: 'SET_ERROR', payload: `You can choose up to ${toppingLimit} free toppings total. Premium toppings don't count toward this limit.` });
+      }
       return;
     }
 
@@ -784,7 +850,7 @@ export default function RestaurantApp() {
         }
       ]
     });
-  }, [modifierState.tempToppings, getToppingLimit, updateModifierState]);
+  }, [modifierState.tempToppings, modifierState.item, modifierState.earsWay, canAddFreeTopping, getToppingLimit, updateModifierState]);
 
   const confirmModifiers = useCallback(() => {
     if (!modifierState.item) return;
@@ -847,16 +913,6 @@ export default function RestaurantApp() {
     
     cancelModifiers();
   }, [modifierState, cancelModifiers]);
-
-  // Get current free topping count for display
-  const getCurrentFreeToppingCount = useCallback(() => {
-    return modifierState.tempToppings
-      .filter(t => {
-        const toppingData = TOPPINGS.find(td => td.id === t.id);
-        return toppingData?.category === "free" && t.quantity > 0;
-      })
-      .length;
-  }, [modifierState.tempToppings]);
 
   // Check if confirm button should be disabled
   const isConfirmDisabled = useMemo(() => {
@@ -959,7 +1015,7 @@ export default function RestaurantApp() {
                 <button
                   key={cat}
                   onClick={() => setCategory(cat as MenuItem["category"] | "All")}
-                  className={`category-tab ${category === cat ? "active" : ""}`}
+                  className={`category-tab ${category === cat ? "active" : ''}`}
                   aria-current={category === cat ? "page" : undefined}
                 >
                   {cat}
@@ -1289,48 +1345,57 @@ export default function RestaurantApp() {
                       Free Toppings 
                       <span className="topping-limit">
                         ({getCurrentFreeToppingCount()}/{getToppingLimit()} selected)
+                        {modifierState.item.id === "salmon-burger" && modifierState.earsWay && (
+                          <span className="ears-way-note"> (Earle's Way counts as 5)</span>
+                        )}
                       </span>
                     </h3>
                     <div className="toppings-grid">
-                      {TOPPINGS.filter(t => t.category === "free").map(topping => {
-                        const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
-                        const quantity = currentTopping?.quantity || 0;
-                        
-                        return (
-                          <div key={topping.id} className="topping-item">
-                            <div className="topping-info">
-                              <span className="topping-name">{topping.name}</span>
-                              <span className="topping-price">{money(topping.price)}</span>
+                      {getAvailableToppings()
+                        .filter(t => t.category === "free")
+                        .map(topping => {
+                          const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
+                          const quantity = currentTopping?.quantity || 0;
+                          const isDisabled = topping.category === "free" && !canAddFreeTopping(topping.id) && quantity === 0;
+                          
+                          return (
+                            <div key={topping.id} className={`topping-item ${isDisabled ? 'disabled' : ''}`}>
+                              <div className="topping-info">
+                                <span className="topping-name">{topping.name}</span>
+                                <span className="topping-price">{money(topping.price)}</span>
+                              </div>
+                              <div className="topping-controls">
+                                <button
+                                  className={`qty-btn ${quantity === 0 ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                                  onClick={() => updateToppingQuantity(topping.id, 0)}
+                                  aria-label={`No ${topping.name}`}
+                                  aria-pressed={quantity === 0}
+                                  disabled={isDisabled}
+                                >
+                                  None
+                                </button>
+                                <button
+                                  className={`qty-btn ${quantity === 1 ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                                  onClick={() => updateToppingQuantity(topping.id, 1)}
+                                  aria-label={`Normal amount of ${topping.name}`}
+                                  aria-pressed={quantity === 1}
+                                  disabled={isDisabled}
+                                >
+                                  Normal
+                                </button>
+                                <button
+                                  className={`qty-btn ${quantity === 2 ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                                  onClick={() => updateToppingQuantity(topping.id, 2)}
+                                  aria-label={`Extra ${topping.name}`}
+                                  aria-pressed={quantity === 2}
+                                  disabled={isDisabled}
+                                >
+                                  Extra
+                                </button>
+                              </div>
                             </div>
-                            <div className="topping-controls">
-                              <button
-                                className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
-                                onClick={() => updateToppingQuantity(topping.id, 0)}
-                                aria-label={`No ${topping.name}`}
-                                aria-pressed={quantity === 0}
-                              >
-                                None
-                              </button>
-                              <button
-                                className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
-                                onClick={() => updateToppingQuantity(topping.id, 1)}
-                                aria-label={`Normal amount of ${topping.name}`}
-                                aria-pressed={quantity === 1}
-                              >
-                                Normal
-                              </button>
-                              <button
-                                className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
-                                onClick={() => updateToppingQuantity(topping.id, 2)}
-                                aria-label={`Extra ${topping.name}`}
-                                aria-pressed={quantity === 2}
-                              >
-                                Extra
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                     </div>
                   </div>
                 )}
@@ -1341,48 +1406,50 @@ export default function RestaurantApp() {
                     <h3>Premium Toppings</h3>
                     <p className="premium-note">Premium toppings don't count toward your free topping limit</p>
                     <div className="toppings-grid">
-                      {TOPPINGS.filter(t => t.category === "paid").map(topping => {
-                        const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
-                        const quantity = currentTopping?.quantity || 0;
-                        const totalCost = topping.price * quantity;
-                        
-                        return (
-                          <div key={topping.id} className="topping-item paid">
-                            <div className="topping-info">
-                              <span className="topping-name">{topping.name}</span>
-                              <span className="topping-price has-cost">
-                                +{money(topping.price)} {quantity > 1 ? `× ${quantity} = +${money(totalCost)}` : ''}
-                              </span>
+                      {getAvailableToppings()
+                        .filter(t => t.category === "paid")
+                        .map(topping => {
+                          const currentTopping = modifierState.tempToppings.find(t => t.id === topping.id);
+                          const quantity = currentTopping?.quantity || 0;
+                          const totalCost = topping.price * quantity;
+                          
+                          return (
+                            <div key={topping.id} className="topping-item paid">
+                              <div className="topping-info">
+                                <span className="topping-name">{topping.name}</span>
+                                <span className="topping-price has-cost">
+                                  +{money(topping.price)} {quantity > 1 ? `× ${quantity} = +${money(totalCost)}` : ''}
+                                </span>
+                              </div>
+                              <div className="topping-controls">
+                                <button
+                                  className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
+                                  onClick={() => updateToppingQuantity(topping.id, 0)}
+                                  aria-label={`No ${topping.name}`}
+                                  aria-pressed={quantity === 0}
+                                >
+                                  None
+                                </button>
+                                <button
+                                  className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
+                                  onClick={() => updateToppingQuantity(topping.id, 1)}
+                                  aria-label={`Normal amount of ${topping.name} for ${money(topping.price)}`}
+                                  aria-pressed={quantity === 1}
+                                >
+                                  Normal
+                                </button>
+                                <button
+                                  className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
+                                  onClick={() => updateToppingQuantity(topping.id, 2)}
+                                  aria-label={`Extra ${topping.name} for ${money(totalCost)}`}
+                                  aria-pressed={quantity === 2}
+                                >
+                                  Extra
+                                </button>
+                              </div>
                             </div>
-                            <div className="topping-controls">
-                              <button
-                                className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
-                                onClick={() => updateToppingQuantity(topping.id, 0)}
-                                aria-label={`No ${topping.name}`}
-                                aria-pressed={quantity === 0}
-                              >
-                                None
-                              </button>
-                              <button
-                                className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
-                                onClick={() => updateToppingQuantity(topping.id, 1)}
-                                aria-label={`Normal amount of ${topping.name} for ${money(topping.price)}`}
-                                aria-pressed={quantity === 1}
-                              >
-                                Normal
-                              </button>
-                              <button
-                                className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
-                                onClick={() => updateToppingQuantity(topping.id, 2)}
-                                aria-label={`Extra ${topping.name} for ${money(totalCost)}`}
-                                aria-pressed={quantity === 2}
-                              >
-                                Extra
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                     </div>
                   </div>
                 )}
