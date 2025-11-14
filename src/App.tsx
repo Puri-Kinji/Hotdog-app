@@ -127,7 +127,7 @@ const MENU: MenuItem[] = [
   { id: "bag-of-chips", name: "BAG OF CHIPS", price: 1.00, category: "Sides & Extras", hasModifiers: true, specialModifiers: "chips" },
   { id: "jamaican-patties", name: "Jamaican Patties", price: 5.00, category: "Sides & Extras" },
   { id: "side-beef-chili", name: "Side of Beef Chili", price: 1.49, category: "Sides & Extras" },
-  { id: "side-cheddar-cheese", name: "Side of Cheddar Cheese", price: 1.00, category: "Sides & Extras" },
+  { id: "side-cheddar-cheese", name: "Side of Cheddar Cheese", price: 1.29, category: "Sides & Extras" },
   { id: "side-vegan-chili", name: "Side of Vegan Chili", price: 2.49, category: "Sides & Extras", badge: "Vegan" },
 
   // Drinks
@@ -140,7 +140,7 @@ const MENU: MenuItem[] = [
   { id: "coconut-water", name: "COCONUT WATER", price: 5.49, category: "Drinks" },
   { id: "bottled-water", name: "BOTTLED WATER", price: 1.49, category: "Drinks" },
   { id: "honey-punch", name: "HONEY PUNCH", price: 7.99, category: "Drinks" },
-  { id: "apryl-drink", name: "APRYL'S JUICE", price: 3.79, category: "Drinks", hasModifiers: true },
+  { id: "apryl-drink", name: "APRYL'S JUICE", price: 7.99, category: "Drinks", hasModifiers: true },
   { id: "creme-soda", name: "CREME SODA", price: 3.79, category: "Drinks" },
   { id: "root-beer", name: "ROOT BEER", price: 3.79, category: "Drinks" },
   { id: "shirley-temple", name: "SHIRLEY TEMPLE", price: 3.79, category: "Drinks" },
@@ -193,8 +193,8 @@ const TOPPINGS: Topping[] = [
   { id: "hot-pepper", name: "Hot Pepper", price: 0.00, category: "free" },
   
   // Paid toppings
-  { id: "cheddar", name: "Cheddar Cheese", price: 1.00, category: "paid" },
-  { id: "american", name: "American Cheese", price: 1.00, category: "paid" },
+  { id: "cheddar", name: "Cheddar Cheese", price: 1.29, category: "paid" },
+  { id: "american", name: "American Cheese", price: 1.29, category: "paid" },
   { id: "vegan-cheese", name: "Vegan Cheese", price: 2.99, category: "paid" },
   { id: "beef-chili", name: "Beef Chili Scoop", price: 1.49, category: "paid" },
   { id: "vegan-chili", name: "Vegan Chili Scoop", price: 2.49, category: "paid" },
