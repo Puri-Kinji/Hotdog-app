@@ -58,6 +58,7 @@ type ModifierState = {
   doubleBagged?: boolean;
   selectedCake?: string;
   selectedDrink?: string;
+  earsWay?: boolean;
 };
 
 type AppState = {
@@ -140,7 +141,7 @@ const MENU: MenuItem[] = [
   { id: "coconut-water", name: "COCONUT WATER", price: 5.49, category: "Drinks" },
   { id: "bottled-water", name: "BOTTLED WATER", price: 1.49, category: "Drinks" },
   { id: "honey-punch", name: "HONEY PUNCH", price: 7.99, category: "Drinks" },
-  { id: "apryl-drink", name: "APRYL'S JUICE", price: 7.99, category: "Drinks", hasModifiers: true },
+  { id: "apryl-drink", name: "APRYL'S JUICE", price: 3.79, category: "Drinks", hasModifiers: true },
   { id: "creme-soda", name: "CREME SODA", price: 3.79, category: "Drinks" },
   { id: "root-beer", name: "ROOT BEER", price: 3.79, category: "Drinks" },
   { id: "shirley-temple", name: "SHIRLEY TEMPLE", price: 3.79, category: "Drinks" },
@@ -199,6 +200,15 @@ const TOPPINGS: Topping[] = [
   { id: "beef-chili", name: "Beef Chili Scoop", price: 1.49, category: "paid" },
   { id: "vegan-chili", name: "Vegan Chili Scoop", price: 2.49, category: "paid" },
   { id: "pastrami", name: "Pastrami", price: 5.99, category: "paid" },
+];
+
+/* ---------------------------------- Earle's Way Toppings ---------------------------------- */
+const EARLES_WAY_TOPPINGS = [
+  { id: "tarter-sauce", name: "Tarter Sauce", price: 0.00, category: "free" },
+  { id: "chipotle", name: "Chipotle Sauce", price: 0.00, category: "free" },
+  { id: "ny-onions", name: "NY Grilled Onions", price: 0.00, category: "free" },
+  { id: "lettuce", name: "Lettuce", price: 0.00, category: "free" },
+  { id: "tomato", name: "Tomato", price: 0.00, category: "free" }
 ];
 
 /* ---------------------------------- Cake Modifiers Data ---------------------------------- */
@@ -368,7 +378,8 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
           selectedBread: "",
           toppings: [],
           tempToppings: [],
-          isSideOrExtra: false
+          isSideOrExtra: false,
+          earsWay: false
         }
       };
 
@@ -403,7 +414,8 @@ const initialState: AppState = {
     selectedBread: "",
     toppings: [],
     tempToppings: [],
-    isSideOrExtra: false
+    isSideOrExtra: false,
+    earsWay: false
   },
   category: "All",
   loading: false,
@@ -517,6 +529,10 @@ function CartItem({
   onApplyNote, 
   noteFor 
 }: CartItemProps) {
+  const hasEarsWay = item.name.includes("Salmon Burger") && item.toppings?.some(t => 
+    EARLES_WAY_TOPPINGS.some(ew => ew.id === t.id)
+  );
+
   return (
     <div className="cart-item" aria-label={`${item.name}, quantity ${item.qty}`}>
       <div className="cart-item-main">
@@ -525,7 +541,8 @@ function CartItem({
           {item.bread && <div className="item-bread">Bread: {item.bread}</div>}
           {item.chipChoice && <div className="item-chip-choice">Chips: {item.chipChoice}</div>}
           {item.doubleBagged && <div className="item-double-bagged">Double Bagged (+$1.00)</div>}
-          {item.toppings && item.toppings.length > 0 && (
+          {hasEarsWay && <div className="item-ears-way">Earle's Way</div>}
+          {item.toppings && item.toppings.length > 0 && !hasEarsWay && (
             <div className="item-toppings">
               Toppings: {item.toppings.map(t => 
                 `${t.name}${t.quantity > 1 ? ` (x${t.quantity})` : ''}`
@@ -622,6 +639,7 @@ export default function RestaurantApp() {
       const isCake = item.id === "cakes" || item.id === "vegan-cakes";
       const isDrink = item.id === "apryl-drink" || item.id === "snappe-drink";
       const isSideOrExtra = item.category === "Sides & Extras";
+      const isSalmonBurger = item.id === "salmon-burger";
       
       const defaultBread = isSideOrExtra ? "no-bread" : 
                           (BREAD_OPTIONS.find(b => b.isDefault)?.id || BREAD_OPTIONS[0].id);
@@ -645,6 +663,19 @@ export default function RestaurantApp() {
         defaultDrink = drinkOptions[0]?.id || "";
       }
       
+      // Set up Earle's Way toppings if it's the Salmon Burger
+      let initialToppings = [];
+      let initialEarsWay = false;
+      if (isSalmonBurger) {
+        initialToppings = EARLES_WAY_TOPPINGS.map(topping => ({
+          id: topping.id,
+          name: topping.name,
+          quantity: 1,
+          price: topping.price
+        }));
+        initialEarsWay = true;
+      }
+      
       dispatch({
         type: 'OPEN_MODIFIERS',
         payload: {
@@ -652,12 +683,13 @@ export default function RestaurantApp() {
           item,
           selectedBread: defaultBread,
           toppings: [],
-          tempToppings: [],
+          tempToppings: initialToppings,
           isSideOrExtra,
           chipChoice: defaultChipChoice,
           doubleBagged: false,
           selectedCake: defaultCake,
-          selectedDrink: defaultDrink
+          selectedDrink: defaultDrink,
+          earsWay: initialEarsWay
         }
       });
     } else {
@@ -785,6 +817,11 @@ export default function RestaurantApp() {
       itemName = `${modifierState.item.name} (${modifierState.chipChoice})`;
     } else if (!modifierState.isSideOrExtra && breadName && breadName !== "No Bread") {
       itemName = `${modifierState.item.name} (${breadName})`;
+    }
+    
+    // Add Earle's Way to item name if applicable
+    if (modifierState.item.id === "salmon-burger" && modifierState.earsWay) {
+      itemName = `${itemName} - Earle's Way`;
     }
     
     const totalBasePrice = basePrice + breadPrice;
@@ -1105,6 +1142,53 @@ export default function RestaurantApp() {
                           <span className="drink-price">{money(drink.price)}</span>
                         </label>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Earle's Way Option - Salmon Burger Only */}
+                {modifierState.item.id === "salmon-burger" && (
+                  <div className="modifier-section">
+                    <h3>Earle's Way</h3>
+                    <div className="ears-way-option">
+                      <label className="ears-way-label">
+                        <input
+                          type="checkbox"
+                          checked={modifierState.earsWay || false}
+                          onChange={(e) => {
+                            const isEarsWay = e.target.checked;
+                            let updatedToppings = [...modifierState.tempToppings];
+                            
+                            if (isEarsWay) {
+                              // Add all Earle's Way toppings
+                              updatedToppings = [
+                                ...updatedToppings.filter(t => !EARLES_WAY_TOPPINGS.some(ew => ew.id === t.id)),
+                                ...EARLES_WAY_TOPPINGS.map(topping => ({
+                                  id: topping.id,
+                                  name: topping.name,
+                                  quantity: 1,
+                                  price: topping.price
+                                }))
+                              ];
+                            } else {
+                              // Remove all Earle's Way toppings
+                              updatedToppings = updatedToppings.filter(t => 
+                                !EARLES_WAY_TOPPINGS.some(ew => ew.id === t.id)
+                              );
+                            }
+                            
+                            updateModifierState({ 
+                              earsWay: isEarsWay,
+                              tempToppings: updatedToppings
+                            });
+                          }}
+                          aria-label="Earle's Way - includes Tartar sauce, Chipotle Sauce, NY grilled onions, Lettuce, Tomato"
+                        />
+                        <span className="ears-way-name">Earle's Way</span>
+                        <span className="ears-way-description">
+                          Includes: Tartar sauce, Chipotle Sauce, NY grilled onions, Lettuce, Tomato
+                        </span>
+                      </label>
                     </div>
                   </div>
                 )}
