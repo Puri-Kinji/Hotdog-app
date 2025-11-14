@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback, useReducer } from "react";
 import "./index.css";
 import "./App.css";
 import logo from "./assets/Yellow + Black Logo_Earle_s on Crenshaw.png";
@@ -60,6 +60,16 @@ type ModifierState = {
   selectedDrink?: string;
 };
 
+type AppState = {
+  cart: CartLine[];
+  noteFor: string | null;
+  showCart: boolean;
+  modifierState: ModifierState;
+  category: MenuItem["category"] | "All";
+  loading: boolean;
+  error: string | null;
+};
+
 /* -------------------------------- Restaurant Info ------------------------------- */
 const RESTAURANT = {
   name: "Earle's on Crenshaw",
@@ -98,7 +108,7 @@ const MENU: MenuItem[] = [
   { id: "double-salmon-burger", name: "Double Salmon Burger", price: 13.99, category: "Burgers & Sandwiches", hasModifiers: true },
   { id: "double-vegan-burger", name: "Double Vegan Burger", price: 16.99, category: "Burgers & Sandwiches", badge: "Vegan", hasModifiers: true },
 
-  // Sides & Extras - Updated items
+  // Sides & Extras
   { id: "french-fries", name: "FRENCH FRIES", price: 5.49, category: "Sides & Extras", hasModifiers: true },
   { id: "beef-chili-fries", name: "BEEF CHILI FRIES", price: 6.99, category: "Sides & Extras", hasModifiers: true },
   { id: "beef-chili-cheese-fries", name: "BEEF CHILI CHEESE FRIES", price: 7.49, category: "Sides & Extras", hasModifiers: true },
@@ -116,8 +126,6 @@ const MENU: MenuItem[] = [
   { id: "vegan-chili-vegan-cheese-fritos", name: "VEGAN CHILI VEGAN CHEESE FRITOS", price: 7.74, category: "Sides & Extras", badge: "Vegan", hasModifiers: true, specialModifiers: "fritos" },
   { id: "bag-of-chips", name: "BAG OF CHIPS", price: 1.00, category: "Sides & Extras", hasModifiers: true, specialModifiers: "chips" },
   { id: "jamaican-patties", name: "Jamaican Patties", price: 5.00, category: "Sides & Extras" },
-  
-  // New Side Items
   { id: "side-beef-chili", name: "Side of Beef Chili", price: 1.49, category: "Sides & Extras" },
   { id: "side-cheddar-cheese", name: "Side of Cheddar Cheese", price: 1.00, category: "Sides & Extras" },
   { id: "side-vegan-chili", name: "Side of Vegan Chili", price: 2.49, category: "Sides & Extras", badge: "Vegan" },
@@ -141,7 +149,6 @@ const MENU: MenuItem[] = [
   { id: "blood-orange", name: "BLOOD ORANGE", price: 3.79, category: "Drinks" },
   { id: "snappe-drink", name: "SNAPPLE", price: 3.79, category: "Drinks", hasModifiers: true },
   { id: "welches", name: "GRAPE WELCHES", price: 3.79, category: "Drinks" },
-  
 
   // Desserts
   { id: "cakes", name: "Cakes", price: 8.49, category: "Desserts", hasModifiers: true },
@@ -244,7 +251,7 @@ function groupByCategory(items: MenuItem[]) {
 // Get current day and hours
 function getCurrentDayInfo() {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const today = new Date().getDay();
   const currentDay = days[today];
   const todayHours = RESTAURANT.hours.find(hour => hour.d === currentDay);
   return {
@@ -253,21 +260,340 @@ function getCurrentDayInfo() {
   };
 }
 
-/* ---------------------------------- App ---------------------------------- */
-export default function RestaurantApp() {
-  const [category, setCategory] =
-    useState<MenuItem["category"] | "All">("All");
-  const [cart, setCart] = useState<CartLine[]>([]);
-  const [noteFor, setNoteFor] = useState<string | null>(null);
-  const [showCart, setShowCart] = useState(false);
-  const [modifierState, setModifierState] = useState<ModifierState>({
+// Local storage utilities
+const CART_STORAGE_KEY = 'earles-cart';
+
+const loadCartFromStorage = (): CartLine[] => {
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveCartToStorage = (cart: CartLine[]) => {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  } catch (error) {
+    console.error('Failed to save cart to storage:', error);
+  }
+};
+
+/* ---------------------------------- Reducer for State Management ---------------------------------- */
+type AppAction =
+  | { type: 'SET_CATEGORY'; payload: MenuItem["category"] | "All" }
+  | { type: 'ADD_TO_CART'; payload: CartLine }
+  | { type: 'REMOVE_FROM_CART'; payload: string }
+  | { type: 'UPDATE_QUANTITY'; payload: { id: string; delta: number } }
+  | { type: 'SET_NOTE'; payload: { id: string; note: string } }
+  | { type: 'SET_NOTE_FOR'; payload: string | null }
+  | { type: 'TOGGLE_CART' }
+  | { type: 'OPEN_MODIFIERS'; payload: ModifierState }
+  | { type: 'CLOSE_MODIFIERS' }
+  | { type: 'UPDATE_MODIFIER_STATE'; payload: Partial<ModifierState> }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'CLEAR_CART' };
+
+const appReducer = (state: AppState, action: AppAction): AppState => {
+  switch (action.type) {
+    case 'SET_CATEGORY':
+      return { ...state, category: action.payload };
+
+    case 'ADD_TO_CART': {
+      const newCart = [...state.cart];
+      const exists = newCart.find(item => 
+        item.id === action.payload.id && 
+        item.name === action.payload.name &&
+        item.bread === action.payload.bread &&
+        item.chipChoice === action.payload.chipChoice &&
+        JSON.stringify(item.toppings) === JSON.stringify(action.payload.toppings)
+      );
+
+      if (exists) {
+        const updatedCart = newCart.map(item =>
+          item.id === exists.id ? { ...item, qty: item.qty + 1 } : item
+        );
+        saveCartToStorage(updatedCart);
+        return { ...state, cart: updatedCart };
+      } else {
+        const updatedCart = [...newCart, action.payload];
+        saveCartToStorage(updatedCart);
+        return { ...state, cart: updatedCart };
+      }
+    }
+
+    case 'REMOVE_FROM_CART': {
+      const updatedCart = state.cart.filter(item => item.id !== action.payload);
+      saveCartToStorage(updatedCart);
+      return { ...state, cart: updatedCart };
+    }
+
+    case 'UPDATE_QUANTITY': {
+      const updatedCart = state.cart
+        .map(item =>
+          item.id === action.payload.id
+            ? { ...item, qty: Math.max(1, item.qty + action.payload.delta) }
+            : item
+        )
+        .filter(item => item.qty > 0);
+      saveCartToStorage(updatedCart);
+      return { ...state, cart: updatedCart };
+    }
+
+    case 'SET_NOTE': {
+      const updatedCart = state.cart.map(item =>
+        item.id === action.payload.id ? { ...item, note: action.payload.note } : item
+      );
+      saveCartToStorage(updatedCart);
+      return { ...state, cart: updatedCart, noteFor: null };
+    }
+
+    case 'SET_NOTE_FOR':
+      return { ...state, noteFor: action.payload };
+
+    case 'TOGGLE_CART':
+      return { ...state, showCart: !state.showCart };
+
+    case 'OPEN_MODIFIERS':
+      return { ...state, modifierState: action.payload };
+
+    case 'CLOSE_MODIFIERS':
+      return {
+        ...state,
+        modifierState: {
+          isOpen: false,
+          item: null,
+          selectedBread: "",
+          toppings: [],
+          tempToppings: [],
+          isSideOrExtra: false
+        }
+      };
+
+    case 'UPDATE_MODIFIER_STATE':
+      return {
+        ...state,
+        modifierState: { ...state.modifierState, ...action.payload }
+      };
+
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+
+    case 'SET_ERROR':
+      return { ...state, error: action.payload, loading: false };
+
+    case 'CLEAR_CART':
+      saveCartToStorage([]);
+      return { ...state, cart: [] };
+
+    default:
+      return state;
+  }
+};
+
+const initialState: AppState = {
+  cart: loadCartFromStorage(),
+  noteFor: null,
+  showCart: false,
+  modifierState: {
     isOpen: false,
     item: null,
     selectedBread: "",
     toppings: [],
     tempToppings: [],
     isSideOrExtra: false
-  });
+  },
+  category: "All",
+  loading: false,
+  error: null
+};
+
+/* ---------------------------------- Custom Hooks ---------------------------------- */
+const useModifierCalculations = (modifierState: ModifierState) => {
+  return useMemo(() => {
+    if (!modifierState.item) return { total: 0, breakdown: [] };
+
+    let breadPrice = 0;
+    const showBread = !modifierState.isSideOrExtra && 
+                     !modifierState.selectedCake && 
+                     !modifierState.selectedDrink;
+    
+    if (showBread) {
+      breadPrice = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0;
+    }
+    
+    const toppingsTotal = modifierState.tempToppings.reduce(
+      (sum, topping) => sum + (topping.price * topping.quantity), 0
+    );
+    
+    const doubleBaggedCharge = modifierState.doubleBagged ? 1.00 : 0;
+    
+    let basePrice = modifierState.item.price;
+    if (modifierState.selectedCake) {
+      const cakeOptions = modifierState.item.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
+      const selectedCake = cakeOptions.find(cake => cake.id === modifierState.selectedCake);
+      basePrice = selectedCake?.price || modifierState.item.price;
+    } else if (modifierState.selectedDrink) {
+      const drinkOptions = modifierState.item.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple;
+      const selectedDrink = drinkOptions.find(drink => drink.id === modifierState.selectedDrink);
+      basePrice = selectedDrink?.price || modifierState.item.price;
+    }
+    
+    const total = basePrice + breadPrice + toppingsTotal + doubleBaggedCharge;
+
+    const breakdown = [
+      { label: 'Base Price', amount: basePrice, isIncrease: false },
+      ...(showBread && breadPrice > 0 ? [{ label: 'Bread', amount: breadPrice, isIncrease: true }] : []),
+      ...(doubleBaggedCharge > 0 ? [{ label: 'Double Bagged', amount: doubleBaggedCharge, isIncrease: true }] : []),
+      ...(toppingsTotal > 0 ? [{ label: 'Toppings', amount: toppingsTotal, isIncrease: true }] : []),
+    ];
+
+    return { total, breakdown };
+  }, [modifierState]);
+};
+
+/* ---------------------------------- Components ---------------------------------- */
+interface NoteEditorProps {
+  initial: string;
+  onCancel: () => void;
+  onSave: (val: string) => void;
+}
+
+function NoteEditor({ initial, onCancel, onSave }: NoteEditorProps) {
+  const [val, setVal] = useState(initial);
+
+  const handleSave = useCallback(() => {
+    onSave(val);
+  }, [onSave, val]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+      handleSave();
+    }
+  }, [handleSave]);
+
+  return (
+    <div className="note-editor" role="dialog" aria-label="Add note">
+      <textarea
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        onKeyDown={handleKeyDown}
+        rows={3}
+        placeholder="Add ketchup, extra onions, no pickles…"
+        className="note-input"
+        aria-describedby="note-instructions"
+      />
+      <small id="note-instructions" className="note-instructions">
+        Press Ctrl+Enter to save quickly
+      </small>
+      <div className="note-actions">
+        <button onClick={handleSave} className="btn primary">
+          Save note
+        </button>
+        <button onClick={onCancel} className="btn">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface CartItemProps {
+  item: CartLine;
+  onUpdateQuantity: (id: string, delta: number) => void;
+  onRemove: (id: string) => void;
+  onSetNoteFor: (id: string) => void;
+  onApplyNote: (id: string, note: string) => void;
+  noteFor: string | null;
+}
+
+function CartItem({ 
+  item, 
+  onUpdateQuantity, 
+  onRemove, 
+  onSetNoteFor, 
+  onApplyNote, 
+  noteFor 
+}: CartItemProps) {
+  return (
+    <div className="cart-item" aria-label={`${item.name}, quantity ${item.qty}`}>
+      <div className="cart-item-main">
+        <div className="item-details">
+          <div className="item-name">{item.name}</div>
+          {item.bread && <div className="item-bread">Bread: {item.bread}</div>}
+          {item.chipChoice && <div className="item-chip-choice">Chips: {item.chipChoice}</div>}
+          {item.doubleBagged && <div className="item-double-bagged">Double Bagged (+$1.00)</div>}
+          {item.toppings && item.toppings.length > 0 && (
+            <div className="item-toppings">
+              Toppings: {item.toppings.map(t => 
+                `${t.name}${t.quantity > 1 ? ` (x${t.quantity})` : ''}`
+              ).join(', ')}
+            </div>
+          )}
+          {item.note && <div className="item-note">Note: {item.note}</div>}
+        </div>
+
+        <div className="item-controls">
+          <div className="item-price" aria-label={`Price: ${money(item.price * item.qty)}`}>
+            {money(item.price * item.qty)}
+          </div>
+
+          <div className="quantity-controls">
+            <button 
+              onClick={() => onUpdateQuantity(item.id, -1)} 
+              className="qty-btn"
+              aria-label={`Decrease quantity of ${item.name}`}
+            >
+              −
+            </button>
+            <span className="qty-display" aria-live="polite">{item.qty}</span>
+            <button 
+              onClick={() => onUpdateQuantity(item.id, 1)} 
+              className="qty-btn"
+              aria-label={`Increase quantity of ${item.name}`}
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="cart-item-actions">
+        <button 
+          onClick={() => onSetNoteFor(item.id)} 
+          className="action-btn"
+          aria-label={item.note ? `Edit note for ${item.name}` : `Add note to ${item.name}`}
+        >
+          {item.note ? "Edit note" : "Add note"}
+        </button>
+        <button 
+          onClick={() => onRemove(item.id)} 
+          className="action-btn remove"
+          aria-label={`Remove ${item.name} from cart`}
+        >
+          Remove
+        </button>
+      </div>
+
+      {noteFor === item.id && (
+        <NoteEditor
+          initial={item.note || ""}
+          onCancel={() => onSetNoteFor(null)}
+          onSave={(val) => onApplyNote(item.id, val)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------- Main App Component ---------------------------------- */
+export default function RestaurantApp() {
+  const [state, dispatch] = useReducer(appReducer, initialState);
+  const { cart, noteFor, showCart, modifierState, category, loading, error } = state;
+
+  const modifierCalculations = useModifierCalculations(modifierState);
 
   const filtered = useMemo(
     () => (category === "All" ? MENU : MENU.filter((m) => m.category === category)),
@@ -276,81 +602,30 @@ export default function RestaurantApp() {
 
   const grouped = useMemo(() => groupByCategory(filtered), [filtered]);
 
-  const subtotal = cart.reduce((s, l) => s + l.price * l.qty, 0);
-  const tax = +(subtotal * 0.095).toFixed(2);
-  const total = +(subtotal + tax).toFixed(2);
+  const subtotal = useMemo(() => cart.reduce((s, l) => s + l.price * l.qty, 0), [cart]);
+  const tax = useMemo(() => +(subtotal * 0.095).toFixed(2), [subtotal]);
+  const total = useMemo(() => +(subtotal + tax).toFixed(2), [subtotal, tax]);
 
-  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
-  const { day, hours } = getCurrentDayInfo();
+  const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
+  const { day, hours } = useMemo(getCurrentDayInfo, []);
 
-  // Calculate total price with modifiers
-  const calculateModifierTotal = () => {
-    if (!modifierState.item) return 0;
-    
-    let breadPrice = 0;
-    // Only include bread price if it's NOT a side/extra and not a cake and not a drink
-    if (!modifierState.isSideOrExtra && !modifierState.selectedCake && !modifierState.selectedDrink) {
-      breadPrice = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread)?.price || 0;
-    }
-    
-    const toppingsTotal = modifierState.tempToppings.reduce((sum, topping) => 
-      sum + (topping.price * topping.quantity), 0
-    );
-    
-    // Add double bagged charge for Fritos items
-    const doubleBaggedCharge = modifierState.doubleBagged ? 1.00 : 0;
-    
-    // Calculate cake price if selected
-    let cakePrice = 0;
-    if (modifierState.selectedCake) {
-      const cakeOptions = modifierState.item.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
-      const selectedCake = cakeOptions.find(cake => cake.id === modifierState.selectedCake);
-      cakePrice = selectedCake?.price || modifierState.item.price;
-    }
-    
-    // Calculate drink price if selected
-    let drinkPrice = 0;
-    if (modifierState.selectedDrink) {
-      const drinkOptions = modifierState.item.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple;
-      const selectedDrink = drinkOptions.find(drink => drink.id === modifierState.selectedDrink);
-      drinkPrice = selectedDrink?.price || modifierState.item.price;
-    }
-    
-    const basePrice = modifierState.selectedCake ? cakePrice : 
-                     modifierState.selectedDrink ? drinkPrice : 
-                     modifierState.item.price;
-    
-    return basePrice + breadPrice + toppingsTotal + doubleBaggedCharge;
-  };
+  // Memoized action creators
+  const setCategory = useCallback((cat: MenuItem["category"] | "All") => {
+    dispatch({ type: 'SET_CATEGORY', payload: cat });
+  }, []);
 
-  // Get topping limit based on item category
-  const getToppingLimit = () => {
-    if (!modifierState.item) return 6; // default
-    
-    if (modifierState.item.category === "Dogs & Links") {
-      return 5;
-    } else if (modifierState.item.category === "Burgers & Sandwiches") {
-      return 6;
-    }
-    
-    return 6; // default for other categories
-  };
-
-  function addToCart(item: MenuItem) {
-    if (item.hasModifiers || item.specialModifiers || item.id === "cakes" || item.id === "vegan-cakes" || item.id === "apryl-drink" || item.id === "snappe-drink") {
-      // Check if it's a cake item
+  const addToCart = useCallback((item: MenuItem) => {
+    if (item.hasModifiers || item.specialModifiers || 
+        item.id === "cakes" || item.id === "vegan-cakes" || 
+        item.id === "apryl-drink" || item.id === "snappe-drink") {
+      
       const isCake = item.id === "cakes" || item.id === "vegan-cakes";
-      
-      // Check if it's a drink with modifiers
       const isDrink = item.id === "apryl-drink" || item.id === "snappe-drink";
-      
-      // Check if it's a Sides & Extras item
       const isSideOrExtra = item.category === "Sides & Extras";
       
-      // Open modifier modal with appropriate configuration
-      const defaultBread = isSideOrExtra ? "no-bread" : (BREAD_OPTIONS.find(b => b.isDefault)?.id || BREAD_OPTIONS[0].id);
+      const defaultBread = isSideOrExtra ? "no-bread" : 
+                          (BREAD_OPTIONS.find(b => b.isDefault)?.id || BREAD_OPTIONS[0].id);
       
-      // Set default chip choice based on item type
       let defaultChipChoice = "";
       if (item.specialModifiers === "fritos") {
         defaultChipChoice = "Fritos";
@@ -358,141 +633,133 @@ export default function RestaurantApp() {
         defaultChipChoice = "Lays";
       }
       
-      // Set default cake selection
       let defaultCake = "";
       if (isCake) {
         const cakeOptions = item.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
         defaultCake = cakeOptions[0]?.id || "";
       }
       
-      // Set default drink selection
       let defaultDrink = "";
       if (isDrink) {
         const drinkOptions = item.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple;
         defaultDrink = drinkOptions[0]?.id || "";
       }
       
-      setModifierState({
-        isOpen: true,
-        item,
-        selectedBread: defaultBread,
-        toppings: [],
-        tempToppings: [],
-        isSideOrExtra: isSideOrExtra,
-        chipChoice: defaultChipChoice,
-        doubleBagged: false,
-        selectedCake: defaultCake,
-        selectedDrink: defaultDrink
+      dispatch({
+        type: 'OPEN_MODIFIERS',
+        payload: {
+          isOpen: true,
+          item,
+          selectedBread: defaultBread,
+          toppings: [],
+          tempToppings: [],
+          isSideOrExtra,
+          chipChoice: defaultChipChoice,
+          doubleBagged: false,
+          selectedCake: defaultCake,
+          selectedDrink: defaultDrink
+        }
       });
     } else {
-      // Add directly to cart for items without modifiers
-      setCart((c) => {
-        const exists = c.find((l) => l.id === item.id);
-        return exists
-          ? c.map((l) => (l.id === item.id ? { ...l, qty: l.qty + 1 } : l))
-          : [...c, { id: item.id, name: item.name, price: item.price, qty: 1 }];
+      dispatch({
+        type: 'ADD_TO_CART',
+        payload: { id: item.id, name: item.name, price: item.price, qty: 1 }
       });
     }
-  }
+  }, []);
 
-  function removeFromCart(id: string) {
-    setCart((c) => c.filter((l) => l.id !== id));
-  }
+  const removeFromCart = useCallback((id: string) => {
+    dispatch({ type: 'REMOVE_FROM_CART', payload: id });
+  }, []);
 
-  function changeQty(id: string, delta: number) {
-    setCart((c) =>
-      c
-        .map((l) => (l.id === id ? { ...l, qty: Math.max(1, l.qty + delta) } : l))
-        .filter((l) => l.qty > 0)
-    );
-  }
+  const changeQty = useCallback((id: string, delta: number) => {
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { id, delta } });
+  }, []);
 
-  function applyNote(id: string, note: string) {
-    setCart((c) => c.map((l) => (l.id === id ? { ...l, note } : l)));
-    setNoteFor(null);
-  }
+  const applyNote = useCallback((id: string, note: string) => {
+    dispatch({ type: 'SET_NOTE', payload: { id, note } });
+  }, []);
 
-  function toggleCart() {
-    setShowCart(!showCart);
-  }
+  const setNoteFor = useCallback((id: string | null) => {
+    dispatch({ type: 'SET_NOTE_FOR', payload: id });
+  }, []);
 
-  // Cancel modifiers
-  const cancelModifiers = () => {
-    setModifierState({
-      isOpen: false,
-      item: null,
-      selectedBread: "",
-      toppings: [],
-      tempToppings: [],
-      isSideOrExtra: false
-    });
-  };
+  const toggleCart = useCallback(() => {
+    dispatch({ type: 'TOGGLE_CART' });
+  }, []);
+
+  const cancelModifiers = useCallback(() => {
+    dispatch({ type: 'CLOSE_MODIFIERS' });
+  }, []);
+
+  const updateModifierState = useCallback((updates: Partial<ModifierState>) => {
+    dispatch({ type: 'UPDATE_MODIFIER_STATE', payload: updates });
+  }, []);
+
+  // Get topping limit based on item category
+  const getToppingLimit = useCallback(() => {
+    if (!modifierState.item) return 6;
+    if (modifierState.item.category === "Dogs & Links") return 5;
+    if (modifierState.item.category === "Burgers & Sandwiches") return 6;
+    return 6;
+  }, [modifierState.item]);
 
   // Update topping quantity
-  const updateToppingQuantity = (toppingId: string, quantity: number) => {
-    setModifierState(prev => {
-      const existing = prev.tempToppings.find(t => t.id === toppingId);
-      const topping = TOPPINGS.find(t => t.id === toppingId);
-      
-      if (!topping) return prev;
+  const updateToppingQuantity = useCallback((toppingId: string, quantity: number) => {
+    const existing = modifierState.tempToppings.find(t => t.id === toppingId);
+    const topping = TOPPINGS.find(t => t.id === toppingId);
+    
+    if (!topping) return;
 
-      // Count only FREE toppings for the limit (exclude premium/paid toppings)
-      const freeToppingsCount = prev.tempToppings
-        .filter(t => {
-          const toppingData = TOPPINGS.find(td => td.id === t.id);
-          return toppingData?.category === "free" && t.quantity > 0;
-        })
-        .length;
+    const freeToppingsCount = modifierState.tempToppings
+      .filter(t => {
+        const toppingData = TOPPINGS.find(td => td.id === t.id);
+        return toppingData?.category === "free" && t.quantity > 0;
+      })
+      .length;
 
-      const toppingLimit = getToppingLimit();
+    const toppingLimit = getToppingLimit();
 
-      // --- Remove topping ---
-      if (quantity === 0) {
-        return {
-          ...prev,
-          tempToppings: prev.tempToppings.filter(t => t.id !== toppingId)
-        };
-      }
+    if (quantity === 0) {
+      updateModifierState({
+        tempToppings: modifierState.tempToppings.filter(t => t.id !== toppingId)
+      });
+      return;
+    }
 
-      // --- Already selected (Normal → Extra allowed) ---
-      if (existing) {
-        return {
-          ...prev,
-          tempToppings: prev.tempToppings.map(t =>
-            t.id === toppingId ? { ...t, quantity } : t
-          )
-        };
-      }
+    if (existing) {
+      updateModifierState({
+        tempToppings: modifierState.tempToppings.map(t =>
+          t.id === toppingId ? { ...t, quantity } : t
+        )
+      });
+      return;
+    }
 
-      // --- NEW topping added ---
-      // Only apply limit to FREE toppings
-      if (topping.category === "free" && freeToppingsCount >= toppingLimit) {
-        alert(`You can choose up to ${toppingLimit} free toppings total. Premium toppings don't count toward this limit.`);
-        return prev;
-      }
+    if (topping.category === "free" && freeToppingsCount >= toppingLimit) {
+      dispatch({ type: 'SET_ERROR', payload: `You can choose up to ${toppingLimit} free toppings total. Premium toppings don't count toward this limit.` });
+      return;
+    }
 
-      return {
-        ...prev,
-        tempToppings: [
-          ...prev.tempToppings,
-          {
-            id: topping.id,
-            name: topping.name,
-            quantity,
-            price: topping.price
-          }
-        ]
-      };
+    updateModifierState({
+      tempToppings: [
+        ...modifierState.tempToppings,
+        {
+          id: topping.id,
+          name: topping.name,
+          quantity,
+          price: topping.price
+        }
+      ]
     });
-  };
+  }, [modifierState.tempToppings, getToppingLimit, updateModifierState]);
 
-  const confirmModifiers = () => {
+  const confirmModifiers = useCallback(() => {
     if (!modifierState.item) return;
     
     let breadName = "";
     let breadPrice = 0;
     
-    // Only include bread if it's NOT a side/extra and not a cake and not a drink
     if (!modifierState.isSideOrExtra && !modifierState.selectedCake && !modifierState.selectedDrink) {
       const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
       breadName = bread?.name || "";
@@ -501,85 +768,100 @@ export default function RestaurantApp() {
     
     const finalToppings = modifierState.tempToppings.filter(t => t.quantity > 0);
     
-    setCart((c) => {
-      // Calculate base price based on modifier type
-      let basePrice = modifierState.item!.price;
-      let itemName = modifierState.item!.name;
-      
-      if (modifierState.selectedCake) {
-        const cakeOptions = modifierState.item!.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
-        const selectedCake = cakeOptions.find(cake => cake.id === modifierState.selectedCake);
-        basePrice = selectedCake?.price || modifierState.item!.price;
-        itemName = selectedCake?.name || modifierState.item!.name;
-      } 
-      else if (modifierState.selectedDrink) {
-        const drinkOptions = modifierState.item!.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple;
-        const selectedDrink = drinkOptions.find(drink => drink.id === modifierState.selectedDrink);
-        basePrice = selectedDrink?.price || modifierState.item!.price;
-        itemName = `${modifierState.item!.name} - ${selectedDrink?.name}`;
-      }
-      // Add chip choice to name if applicable
-      else if (modifierState.chipChoice) {
-        itemName = `${modifierState.item!.name} (${modifierState.chipChoice})`;
-      }
-      else if (!modifierState.isSideOrExtra && breadName && breadName !== "No Bread") {
-        itemName = `${modifierState.item!.name} (${breadName})`;
-      }
-      
-      const totalBasePrice = basePrice + breadPrice;
-      const toppingsTotal = finalToppings.reduce((sum, topping) => 
-        sum + (topping.price * topping.quantity), 0
-      );
-      const doubleBaggedCharge = modifierState.doubleBagged ? 1.00 : 0;
-      const totalPrice = totalBasePrice + toppingsTotal + doubleBaggedCharge;
-      
-      const exists = c.find((l) => 
-        l.id === modifierState.item!.id && 
-        l.bread === breadName &&
-        l.chipChoice === modifierState.chipChoice &&
-        l.doubleBagged === modifierState.doubleBagged &&
-        JSON.stringify(l.toppings) === JSON.stringify(finalToppings) &&
-        l.name === itemName // Also check if the name matches (for cake/drink selection)
-      );
-      
-      if (exists) {
-        return c.map((l) => 
-          l.id === exists.id ? { ...l, qty: l.qty + 1 } : l
-        );
-      } else {
-        return [...c, { 
-          id: modifierState.item!.id, 
-          name: itemName, 
-          price: totalPrice, 
-          qty: 1,
-          bread: (modifierState.isSideOrExtra || modifierState.selectedCake || modifierState.selectedDrink) ? undefined : breadName,
-          toppings: finalToppings,
-          chipChoice: modifierState.chipChoice,
-          doubleBagged: modifierState.doubleBagged
-        }];
+    let basePrice = modifierState.item.price;
+    let itemName = modifierState.item.name;
+    
+    if (modifierState.selectedCake) {
+      const cakeOptions = modifierState.item.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
+      const selectedCake = cakeOptions.find(cake => cake.id === modifierState.selectedCake);
+      basePrice = selectedCake?.price || modifierState.item.price;
+      itemName = selectedCake?.name || modifierState.item.name;
+    } else if (modifierState.selectedDrink) {
+      const drinkOptions = modifierState.item.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple;
+      const selectedDrink = drinkOptions.find(drink => drink.id === modifierState.selectedDrink);
+      basePrice = selectedDrink?.price || modifierState.item.price;
+      itemName = `${modifierState.item.name} - ${selectedDrink?.name}`;
+    } else if (modifierState.chipChoice) {
+      itemName = `${modifierState.item.name} (${modifierState.chipChoice})`;
+    } else if (!modifierState.isSideOrExtra && breadName && breadName !== "No Bread") {
+      itemName = `${modifierState.item.name} (${breadName})`;
+    }
+    
+    const totalBasePrice = basePrice + breadPrice;
+    const toppingsTotal = finalToppings.reduce((sum, topping) => 
+      sum + (topping.price * topping.quantity), 0
+    );
+    const doubleBaggedCharge = modifierState.doubleBagged ? 1.00 : 0;
+    const totalPrice = totalBasePrice + toppingsTotal + doubleBaggedCharge;
+    
+    dispatch({
+      type: 'ADD_TO_CART',
+      payload: {
+        id: modifierState.item.id,
+        name: itemName,
+        price: totalPrice,
+        qty: 1,
+        bread: (modifierState.isSideOrExtra || modifierState.selectedCake || modifierState.selectedDrink) ? undefined : breadName,
+        toppings: finalToppings,
+        chipChoice: modifierState.chipChoice,
+        doubleBagged: modifierState.doubleBagged
       }
     });
     
     cancelModifiers();
-  };
+  }, [modifierState, cancelModifiers]);
 
   // Get current free topping count for display
-  const getCurrentFreeToppingCount = () => {
+  const getCurrentFreeToppingCount = useCallback(() => {
     return modifierState.tempToppings
       .filter(t => {
         const toppingData = TOPPINGS.find(td => td.id === t.id);
         return toppingData?.category === "free" && t.quantity > 0;
       })
       .length;
-  };
+  }, [modifierState.tempToppings]);
+
+  // Check if confirm button should be disabled
+  const isConfirmDisabled = useMemo(() => {
+    if (!modifierState.item) return true;
+
+    const isCakeItem = ['cakes', 'vegan-cakes'].includes(modifierState.item.id);
+    const isDrinkItem = ['apryl-drink', 'snappe-drink'].includes(modifierState.item.id);
+    const hasSpecialModifiers = !!modifierState.item.specialModifiers;
+
+    const requiresCakeSelection = isCakeItem && !modifierState.selectedCake;
+    const requiresDrinkSelection = isDrinkItem && !modifierState.selectedDrink;
+    const requiresBreadSelection = !modifierState.isSideOrExtra && 
+                                  !hasSpecialModifiers && 
+                                  !modifierState.selectedCake && 
+                                  !modifierState.selectedDrink && 
+                                  !modifierState.selectedBread;
+    const requiresChipChoice = hasSpecialModifiers && !modifierState.chipChoice;
+
+    return requiresCakeSelection || requiresDrinkSelection || requiresBreadSelection || requiresChipChoice;
+  }, [modifierState]);
+
+  // Clear error after 3 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        dispatch({ type: 'SET_ERROR', payload: null });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   return (
     <div className="app">
       {/* Header */}
-      <header className="header">
+      <header className="header" role="banner">
         <div className="header-top">
           <div className="header-content">
-            <img src={logo} alt="Earle's on Crenshaw" className="logo-image" />
+            <img 
+              src={logo} 
+              alt="Earle's on Crenshaw" 
+              className="logo-image" 
+            />
             
             <div className="header-main-info">
               <div className="restaurant-info">
@@ -600,29 +882,48 @@ export default function RestaurantApp() {
             </div>
             
             {/* Cart Icon */}
-            <button className="cart-icon-btn" onClick={toggleCart}>
+            <button 
+              className="cart-icon-btn" 
+              onClick={toggleCart}
+              aria-label={`View cart, ${totalItems} items`}
+            >
               <svg className="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               {totalItems > 0 && (
-                <span className="cart-counter">{totalItems}</span>
+                <span className="cart-counter" aria-live="polite">{totalItems}</span>
               )}
             </button>
           </div>
         </div>
       </header>
 
+      {/* Error Display */}
+      {error && (
+        <div className="error-banner" role="alert" aria-live="assertive">
+          {error}
+          <button 
+            onClick={() => dispatch({ type: 'SET_ERROR', payload: null })}
+            className="error-close"
+            aria-label="Dismiss error"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Main */}
       <main className="main">
         <div className="container">
           {/* Category Nav */}
-          <nav className="categories-nav">
+          <nav className="categories-nav" aria-label="Menu categories">
             <div className="categories-scroll">
               {["All", ...CATEGORIES].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setCategory(cat as MenuItem["category"] | "All")}
                   className={`category-tab ${category === cat ? "active" : ""}`}
+                  aria-current={category === cat ? "page" : undefined}
                 >
                   {cat}
                   {cat !== "All" && (
@@ -639,8 +940,8 @@ export default function RestaurantApp() {
           <div className="menu-sections">
             {[...grouped.entries()].map(([cat, items]) =>
               items.length ? (
-                <section key={cat} className="menu-section">
-                  <h2 className="section-title">{cat}</h2>
+                <section key={cat} className="menu-section" aria-labelledby={`section-${cat}`}>
+                  <h2 id={`section-${cat}`} className="section-title">{cat}</h2>
 
                   <div className="items-grid">
                     {items.map((item) => (
@@ -648,7 +949,15 @@ export default function RestaurantApp() {
                         <div className="item-content">
                           <div className="item-info">
                             <h3 className="item-name">{item.name}</h3>
-                            {item.badge && <span className="badge" data-badge={item.badge}>{item.badge}</span>}
+                            {item.badge && (
+                              <span 
+                                className="badge" 
+                                data-badge={item.badge}
+                                aria-label={item.badge}
+                              >
+                                {item.badge}
+                              </span>
+                            )}
                           </div>
 
                           <div className="item-actions">
@@ -656,6 +965,7 @@ export default function RestaurantApp() {
                             <button
                               onClick={() => addToCart(item)}
                               className="add-btn"
+                              aria-label={`Add ${item.name} to cart`}
                             >
                               Add
                             </button>
@@ -677,7 +987,13 @@ export default function RestaurantApp() {
               <div className="cart-card">
                 <div className="cart-header">
                   <h2 className="cart-title">Your Order</h2>
-                  <button className="close-cart" onClick={toggleCart}>×</button>
+                  <button 
+                    className="close-cart" 
+                    onClick={toggleCart}
+                    aria-label="Close cart"
+                  >
+                    ×
+                  </button>
                 </div>
 
                 {cart.length === 0 ? (
@@ -686,57 +1002,17 @@ export default function RestaurantApp() {
                   </div>
                 ) : (
                   <div className="cart-content">
-                    <div className="cart-items">
+                    <div className="cart-items" aria-live="polite">
                       {cart.map((item) => (
-                        <div key={item.id} className="cart-item">
-                          <div className="cart-item-main">
-                            <div className="item-details">
-                              <div className="item-name">{item.name}</div>
-                              {item.bread && <div className="item-bread">Bread: {item.bread}</div>}
-                              {item.chipChoice && <div className="item-chip-choice">Chips: {item.chipChoice}</div>}
-                              {item.doubleBagged && <div className="item-double-bagged">Double Bagged (+$1.00)</div>}
-                              {item.toppings && item.toppings.length > 0 && (
-                                <div className="item-toppings">
-                                  Toppings: {item.toppings.map(t => 
-                                    `${t.name}${t.quantity > 1 ? ` (x${t.quantity})` : ''}`
-                                  ).join(', ')}
-                                </div>
-                              )}
-                              {item.note && <div className="item-note">Note: {item.note}</div>}
-                            </div>
-
-                            <div className="item-controls">
-                              <div className="item-price">{money(item.price * item.qty)}</div>
-
-                              <div className="quantity-controls">
-                                <button onClick={() => changeQty(item.id, -1)} className="qty-btn">
-                                  −
-                                </button>
-                                <span className="qty-display">{item.qty}</span>
-                                <button onClick={() => changeQty(item.id, 1)} className="qty-btn">
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="cart-item-actions">
-                            <button onClick={() => setNoteFor(item.id)} className="action-btn">
-                              {item.note ? "Edit note" : "Add note"}
-                            </button>
-                            <button onClick={() => removeFromCart(item.id)} className="action-btn remove">
-                              Remove
-                            </button>
-                          </div>
-
-                          {noteFor === item.id && (
-                            <NoteEditor
-                              initial={item.note || ""}
-                              onCancel={() => setNoteFor(null)}
-                              onSave={(val) => applyNote(item.id, val)}
-                            />
-                          )}
-                        </div>
+                        <CartItem
+                          key={`${item.id}-${item.name}-${item.bread}-${item.chipChoice}`}
+                          item={item}
+                          onUpdateQuantity={changeQty}
+                          onRemove={removeFromCart}
+                          onSetNoteFor={setNoteFor}
+                          onApplyNote={applyNote}
+                          noteFor={noteFor}
+                        />
                       ))}
                     </div>
 
@@ -756,7 +1032,12 @@ export default function RestaurantApp() {
                     </div>
 
                     <div className="checkout-section">
-                      <button className="checkout-btn">Place Pickup Order</button>
+                      <button 
+                        className="checkout-btn"
+                        aria-label="Place pickup order"
+                      >
+                        Place Pickup Order
+                      </button>
                       <p className="checkout-note">* Online checkout not wired in this demo</p>
                     </div>
                   </div>
@@ -769,10 +1050,16 @@ export default function RestaurantApp() {
         {/* Modifier Modal */}
         {modifierState.isOpen && modifierState.item && (
           <div className="modifier-overlay">
-            <div className="modifier-modal">
+            <div className="modifier-modal" role="dialog" aria-labelledby="modifier-title">
               <div className="modifier-header">
-                <h2>Customize {modifierState.item.name}</h2>
-                <button className="close-modifier" onClick={cancelModifiers}>×</button>
+                <h2 id="modifier-title">Customize {modifierState.item.name}</h2>
+                <button 
+                  className="close-modifier" 
+                  onClick={cancelModifiers}
+                  aria-label="Close customization"
+                >
+                  ×
+                </button>
               </div>
 
               <div className="modifier-content">
@@ -780,7 +1067,7 @@ export default function RestaurantApp() {
                 {(modifierState.item.id === "cakes" || modifierState.item.id === "vegan-cakes") && (
                   <div className="modifier-section">
                     <h3>Select Cake Flavor *</h3>
-                    <div className="cake-options">
+                    <div className="cake-options" role="radiogroup" aria-label="Cake flavors">
                       {(modifierState.item.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan).map(cake => (
                         <label key={cake.id} className="cake-option">
                           <input
@@ -788,10 +1075,8 @@ export default function RestaurantApp() {
                             name="cake"
                             value={cake.id}
                             checked={modifierState.selectedCake === cake.id}
-                            onChange={(e) => setModifierState(prev => ({
-                              ...prev,
-                              selectedCake: e.target.value
-                            }))}
+                            onChange={(e) => updateModifierState({ selectedCake: e.target.value })}
+                            aria-label={cake.name}
                           />
                           <span className="cake-name">{cake.name}</span>
                           <span className="cake-price">{money(cake.price)}</span>
@@ -805,7 +1090,7 @@ export default function RestaurantApp() {
                 {(modifierState.item.id === "apryl-drink" || modifierState.item.id === "snappe-drink") && (
                   <div className="modifier-section">
                     <h3>Select Flavor *</h3>
-                    <div className="drink-options">
+                    <div className="drink-options" role="radiogroup" aria-label="Drink flavors">
                       {(modifierState.item.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple).map(drink => (
                         <label key={drink.id} className="drink-option">
                           <input
@@ -813,10 +1098,8 @@ export default function RestaurantApp() {
                             name="drink"
                             value={drink.id}
                             checked={modifierState.selectedDrink === drink.id}
-                            onChange={(e) => setModifierState(prev => ({
-                              ...prev,
-                              selectedDrink: e.target.value
-                            }))}
+                            onChange={(e) => updateModifierState({ selectedDrink: e.target.value })}
+                            aria-label={drink.name}
                           />
                           <span className="drink-name">{drink.name}</span>
                           <span className="drink-price">{money(drink.price)}</span>
@@ -830,17 +1113,15 @@ export default function RestaurantApp() {
                 {modifierState.item.specialModifiers === "fritos" && (
                   <div className="modifier-section">
                     <h3>Chip & Bag Choice</h3>
-                    <div className="chip-options">
+                    <div className="chip-options" role="radiogroup" aria-label="Chip choices">
                       <label className="chip-option">
                         <input
                           type="radio"
                           name="chipChoice"
                           value="Fritos"
                           checked={modifierState.chipChoice === "Fritos"}
-                          onChange={(e) => setModifierState(prev => ({
-                            ...prev,
-                            chipChoice: e.target.value
-                          }))}
+                          onChange={(e) => updateModifierState({ chipChoice: e.target.value })}
+                          aria-label="Fritos"
                         />
                         <span className="chip-name">Fritos</span>
                       </label>
@@ -850,10 +1131,8 @@ export default function RestaurantApp() {
                           name="chipChoice"
                           value="Doritos"
                           checked={modifierState.chipChoice === "Doritos"}
-                          onChange={(e) => setModifierState(prev => ({
-                            ...prev,
-                            chipChoice: e.target.value
-                          }))}
+                          onChange={(e) => updateModifierState({ chipChoice: e.target.value })}
+                          aria-label="Doritos"
                         />
                         <span className="chip-name">Doritos</span>
                       </label>
@@ -863,10 +1142,8 @@ export default function RestaurantApp() {
                         <input
                           type="checkbox"
                           checked={modifierState.doubleBagged || false}
-                          onChange={(e) => setModifierState(prev => ({
-                            ...prev,
-                            doubleBagged: e.target.checked
-                          }))}
+                          onChange={(e) => updateModifierState({ doubleBagged: e.target.checked })}
+                          aria-label="Double bagged for an additional $1.00"
                         />
                         <span className="double-bag-name">Double Bagged (+$1.00)</span>
                       </label>
@@ -878,68 +1155,29 @@ export default function RestaurantApp() {
                 {modifierState.item.specialModifiers === "chips" && (
                   <div className="modifier-section">
                     <h3>Chip Choice *</h3>
-                    <div className="chip-options">
-                      <label className="chip-option">
-                        <input
-                          type="radio"
-                          name="chipChoice"
-                          value="Lays"
-                          checked={modifierState.chipChoice === "Lays"}
-                          onChange={(e) => setModifierState(prev => ({
-                            ...prev,
-                            chipChoice: e.target.value
-                          }))}
-                        />
-                        <span className="chip-name">Lays</span>
-                      </label>
-                      <label className="chip-option">
-                        <input
-                          type="radio"
-                          name="chipChoice"
-                          value="Doritos"
-                          checked={modifierState.chipChoice === "Doritos"}
-                          onChange={(e) => setModifierState(prev => ({
-                            ...prev,
-                            chipChoice: e.target.value
-                          }))}
-                        />
-                        <span className="chip-name">Doritos</span>
-                      </label>
-                      <label className="chip-option">
-                        <input
-                          type="radio"
-                          name="chipChoice"
-                          value="BBQ"
-                          checked={modifierState.chipChoice === "BBQ"}
-                          onChange={(e) => setModifierState(prev => ({
-                            ...prev,
-                            chipChoice: e.target.value
-                          }))}
-                        />
-                        <span className="chip-name">BBQ</span>
-                      </label>
-                      <label className="chip-option">
-                        <input
-                          type="radio"
-                          name="chipChoice"
-                          value="Fritos"
-                          checked={modifierState.chipChoice === "Fritos"}
-                          onChange={(e) => setModifierState(prev => ({
-                            ...prev,
-                            chipChoice: e.target.value
-                          }))}
-                        />
-                        <span className="chip-name">Fritos</span>
-                      </label>
+                    <div className="chip-options" role="radiogroup" aria-label="Chip choices">
+                      {["Lays", "Doritos", "BBQ", "Fritos"].map(chip => (
+                        <label key={chip} className="chip-option">
+                          <input
+                            type="radio"
+                            name="chipChoice"
+                            value={chip}
+                            checked={modifierState.chipChoice === chip}
+                            onChange={(e) => updateModifierState({ chipChoice: e.target.value })}
+                            aria-label={chip}
+                          />
+                          <span className="chip-name">{chip}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
                 )}
 
-                {/* Bread Selection - Only show for non-sides/extras and items without special modifiers and not cakes and not drinks */}
+                {/* Bread Selection */}
                 {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && (
                   <div className="modifier-section">
                     <h3>Bread Selection *</h3>
-                    <div className="bread-options">
+                    <div className="bread-options" role="radiogroup" aria-label="Bread choices">
                       {BREAD_OPTIONS.map(bread => (
                         <label key={bread.id} className="bread-option">
                           <input
@@ -947,10 +1185,8 @@ export default function RestaurantApp() {
                             name="bread"
                             value={bread.id}
                             checked={modifierState.selectedBread === bread.id}
-                            onChange={(e) => setModifierState(prev => ({
-                              ...prev,
-                              selectedBread: e.target.value
-                            }))}
+                            onChange={(e) => updateModifierState({ selectedBread: e.target.value })}
+                            aria-label={`${bread.name} ${bread.price > 0 ? `for ${money(bread.price)}` : 'at no extra cost'}`}
                           />
                           <span className="bread-name">{bread.name}</span>
                           <span className={`bread-price ${bread.price > 0 ? 'has-cost' : ''}`}>
@@ -962,7 +1198,7 @@ export default function RestaurantApp() {
                   </div>
                 )}
 
-                {/* Free Toppings - Only show for items without special modifiers and not cakes and not drinks */}
+                {/* Free Toppings */}
                 {!modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && (
                   <div className="modifier-section">
                     <h3>
@@ -986,18 +1222,24 @@ export default function RestaurantApp() {
                               <button
                                 className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
                                 onClick={() => updateToppingQuantity(topping.id, 0)}
+                                aria-label={`No ${topping.name}`}
+                                aria-pressed={quantity === 0}
                               >
                                 None
                               </button>
                               <button
                                 className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
                                 onClick={() => updateToppingQuantity(topping.id, 1)}
+                                aria-label={`Normal amount of ${topping.name}`}
+                                aria-pressed={quantity === 1}
                               >
                                 Normal
                               </button>
                               <button
                                 className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
                                 onClick={() => updateToppingQuantity(topping.id, 2)}
+                                aria-label={`Extra ${topping.name}`}
+                                aria-pressed={quantity === 2}
                               >
                                 Extra
                               </button>
@@ -1009,7 +1251,7 @@ export default function RestaurantApp() {
                   </div>
                 )}
 
-                {/* Paid Toppings - Only show for items without special modifiers and not cakes and not drinks */}
+                {/* Paid Toppings */}
                 {!modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && (
                   <div className="modifier-section">
                     <h3>Premium Toppings</h3>
@@ -1032,18 +1274,24 @@ export default function RestaurantApp() {
                               <button
                                 className={`qty-btn ${quantity === 0 ? 'active' : ''}`}
                                 onClick={() => updateToppingQuantity(topping.id, 0)}
+                                aria-label={`No ${topping.name}`}
+                                aria-pressed={quantity === 0}
                               >
                                 None
                               </button>
                               <button
                                 className={`qty-btn ${quantity === 1 ? 'active' : ''}`}
                                 onClick={() => updateToppingQuantity(topping.id, 1)}
+                                aria-label={`Normal amount of ${topping.name} for ${money(topping.price)}`}
+                                aria-pressed={quantity === 1}
                               >
                                 Normal
                               </button>
                               <button
                                 className={`qty-btn ${quantity === 2 ? 'active' : ''}`}
                                 onClick={() => updateToppingQuantity(topping.id, 2)}
+                                aria-label={`Extra ${topping.name} for ${money(totalCost)}`}
+                                aria-pressed={quantity === 2}
                               >
                                 Extra
                               </button>
@@ -1057,70 +1305,17 @@ export default function RestaurantApp() {
 
                 {/* Total and Actions */}
                 <div className="modifier-total">
-                  <div className="total-line">
-                    <span>Base Price:</span>
-                    <span>{money(() => {
-                      if (modifierState.selectedCake) {
-                        const cakeOptions = modifierState.item!.id === "cakes" ? CAKE_OPTIONS.regular : CAKE_OPTIONS.vegan;
-                        const selectedCake = cakeOptions.find(cake => cake.id === modifierState.selectedCake);
-                        return selectedCake?.price || modifierState.item!.price;
-                      } else if (modifierState.selectedDrink) {
-                        const drinkOptions = modifierState.item!.id === "apryl-drink" ? DRINK_OPTIONS.apryl : DRINK_OPTIONS.snapple;
-                        const selectedDrink = drinkOptions.find(drink => drink.id === modifierState.selectedDrink);
-                        return selectedDrink?.price || modifierState.item!.price;
-                      } else {
-                        return modifierState.item!.price;
-                      }
-                    }())}</span>
-                  </div>
-                  
-                  {/* Only show bread line for non-sides/extras and items without special modifiers and not cakes and not drinks */}
-                  {!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && (
-                    <div className="total-line">
-                      <span>Bread:</span>
-                      {(() => {
-                        const bread = BREAD_OPTIONS.find(b => b.id === modifierState.selectedBread);
-                        const price = bread?.price ?? 0;
-                        return (
-                          <span className={price > 0 ? 'price-increase' : ''}>
-                            {price > 0 ? '+' : ''}
-                            {money(price)}
-                          </span>
-                        );
-                      })()}
+                  {modifierCalculations.breakdown.map((item, index) => (
+                    <div key={index} className="total-line">
+                      <span>{item.label}:</span>
+                      <span className={item.isIncrease ? 'price-increase' : ''}>
+                        {item.isIncrease ? '+' : ''}{money(item.amount)}
+                      </span>
                     </div>
-                  )}
-                  
-                  {/* Show double bagged charge for Fritos items */}
-                  {modifierState.item.specialModifiers === "fritos" && modifierState.doubleBagged && (
-                    <div className="total-line">
-                      <span>Double Bagged:</span>
-                      <span className="price-increase">+{money(1.00)}</span>
-                    </div>
-                  )}
-                  
-                  {/* Show toppings total only for items without special modifiers and not cakes and not drinks */}
-                  {!modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && (
-                    <div className="total-line">
-                      <span>Toppings:</span>
-                      {(() => {
-                        const toppingsTotal = modifierState.tempToppings.reduce(
-                          (sum, t) => sum + t.price * t.quantity,
-                          0
-                        );
-                        return (
-                          <span className={toppingsTotal > 0 ? 'price-increase' : ''}>
-                            {toppingsTotal > 0 ? '+' : ''}
-                            {money(toppingsTotal)}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  )}
-
+                  ))}
                   <div className="total-line final">
                     <span>Total:</span>
-                    <span>{money(calculateModifierTotal())}</span>
+                    <span>{money(modifierCalculations.total)}</span>
                   </div>
                 </div>
 
@@ -1128,26 +1323,17 @@ export default function RestaurantApp() {
                   <button 
                     className="cancel-btn" 
                     onClick={cancelModifiers}
+                    aria-label="Cancel customization"
                   >
                     Cancel
                   </button>
                   <button 
                     className="confirm-btn" 
                     onClick={confirmModifiers}
-                    disabled={
-                      // For cake items: require cake selection
-                      ((modifierState.item.id === "cakes" || modifierState.item.id === "vegan-cakes") && !modifierState.selectedCake) ||
-                      // For drink items: require drink selection
-                      ((modifierState.item.id === "apryl-drink" || modifierState.item.id === "snappe-drink") && !modifierState.selectedDrink) ||
-                      // For regular items: require bread selection
-                      (!modifierState.isSideOrExtra && !modifierState.item.specialModifiers && !modifierState.selectedCake && !modifierState.selectedDrink && !modifierState.selectedBread) ||
-                      // For bag of chips: require chip choice
-                      (modifierState.item.specialModifiers === "chips" && !modifierState.chipChoice) ||
-                      // For fritos items: require chip choice
-                      (modifierState.item.specialModifiers === "fritos" && !modifierState.chipChoice)
-                    }
+                    disabled={isConfirmDisabled}
+                    aria-label={`Confirm customization for ${money(modifierCalculations.total)}`}
                   >
-                    Confirm - {money(calculateModifierTotal())}
+                    Confirm - {money(modifierCalculations.total)}
                   </button>
                 </div>
               </div>
@@ -1155,38 +1341,6 @@ export default function RestaurantApp() {
           </div>
         )}
       </main>
-    </div>
-  );
-}
-
-/* -------------------------------- Note Editor Component ------------------------------- */
-function NoteEditor({
-  initial,
-  onCancel,
-  onSave,
-}: {
-  initial: string;
-  onCancel: () => void;
-  onSave: (val: string) => void;
-}) {
-  const [val, setVal] = useState(initial);
-  return (
-    <div className="note-editor">
-      <textarea
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-        rows={3}
-        placeholder="Add ketchup, extra onions, no pickles…"
-        className="note-input"
-      />
-      <div className="note-actions">
-        <button onClick={() => onSave(val)} className="btn primary">
-          Save note
-        </button>
-        <button onClick={onCancel} className="btn">
-          Cancel
-        </button>
-      </div>
     </div>
   );
 }
