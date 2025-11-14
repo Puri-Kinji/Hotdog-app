@@ -132,7 +132,7 @@ const MENU: MenuItem[] = [
 
   // Drinks
   { id: "can-soda", name: "CAN SODA", price: 3.79, category: "Drinks" },
-  { id: "small-playas-punch", name: "PLAYAS PUNCH", price: 4.49, category: "Drinks" },
+  { id: "small-playas-punch", name: "SMALL PLAYAS PUNCH", price: 4.49, category: "Drinks" },
   { id: "large-playas-punch", name: "LARGE PLAYAS PUNCH", price: 5.49, category: "Drinks" },
   { id: "half-gallon-playas-punch", name: "1/2 GALLON PLAYAS PUNCH", price: 9.99, category: "Drinks" },
   { id: "playas-punch-special", name: "PLAYAS PUNCH SPECIAL - 2 Half Gallons", price: 17.99, category: "Drinks" },
